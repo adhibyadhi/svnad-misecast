@@ -148,3 +148,27 @@ def build_ingredient_master(recipe: pd.DataFrame) -> pd.DataFrame:
         "ingredient_id", "ingredient_name", "category", "unit",
         "storage_type", "unit_cost_aud", "used_in_menu_items",
     ]].sort_values(["category", "ingredient_id"]).reset_index(drop=True)
+
+
+def check_joins(menu_variants, menu_recipes, ingredient_master, sales) -> None:
+    """Run after loading any new data drop, before trusting it."""
+    problems = []
+
+    orphan_recipe_variants = set(menu_recipes["menu_variant_id"]) - set(menu_variants["menu_variant_id"])
+    if orphan_recipe_variants:
+        problems.append(f"recipe lines reference unknown menu_variant_id: {orphan_recipe_variants}")
+
+    orphan_sales_variants = set(sales["menu_variant_id"]) - set(menu_variants["menu_variant_id"])
+    if orphan_sales_variants:
+        problems.append(f"sales rows reference unknown menu_variant_id: {orphan_sales_variants}")
+
+    orphan_ingredients = set(menu_recipes["ingredient_id"]) - set(ingredient_master["ingredient_id"])
+    if orphan_ingredients:
+        problems.append(f"recipe lines reference unknown ingredient_id: {orphan_ingredients}")
+
+    if problems:
+        print("JOIN PROBLEMS FOUND:")
+        for p in problems:
+            print(" -", p)
+    else:
+        print("All joins check out: recipes -> variants -> sales, and recipes -> ingredient_master.")
