@@ -26,3 +26,4 @@ def load_recipe(path: str) -> pd.DataFrame:
     df["size"] = df["menu_item_name"].str.extract(r"-\s*(Small|Large)$")[0].str.lower()
     df["preparation_loss_pct"] = df["preparation_loss_pct"].str.rstrip("%").astype(float) / 100
     return df.reset_index(drop=True)
+
