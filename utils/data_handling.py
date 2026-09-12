@@ -59,3 +59,53 @@ def build_blended_recipe(recipe: pd.DataFrame, small_share: float = 0.5) -> pd.D
 
     keep_cols = ["menu_item_id", "ingredient_id", "ingredient_name", "unit", "effective_quantity_per_portion"]
     return pd.concat([blended[keep_cols], unsized[keep_cols]], ignore_index=True)
+
+
+PREFIX_CATEGORY = {
+    "BASE": "Base / starch",
+    "PROT": "Protein",
+    "SAUC": "Sauce",
+    "GARN": "Garnish / topping",
+    "LEAF": "Leafy greens / salad",
+    "SEAS": "Seasoning",
+    "MISC": "Miscellaneous",
+    "SNCK": "Packaged snack",
+    "DRNK": "Packaged drink",
+}
+
+
+def build_ingredient_master(recipe: pd.DataFrame) -> pd.DataFrame:
+    """Dedupes ingredient_id -> name/unit out of recipe.csv into a
+    standalone ingredient master (Section 3's "Ingredient master" table).
+    Also flags any ingredient_id that shows up with more than one distinct
+    name or unit across recipe lines - a real data inconsistency worth
+    fixing at the source rather than silently picking one."""
+    grouped = recipe.groupby("ingredient_id").agg(
+        names=("ingredient_name", lambda s: sorted(s.unique())),
+        units=("unit", lambda s: sorted(s.unique())),
+        used_in_menu_items=("menu_item_id", "nunique"),
+    )
+
+    inconsistent = grouped[
+        (grouped["names"].apply(len) > 1) | (grouped["units"].apply(len) > 1)
+    ]
+    if len(inconsistent):
+        print(f"WARNING: {len(inconsistent)} ingredient_id(s) have inconsistent "
+              f"name/unit across recipe lines -- check these before trusting the master:")
+        print(inconsistent[["names", "units"]])
+
+    master = grouped.reset_index()
+    master["ingredient_name"] = master["names"].str[0]
+    master["unit"] = master["units"].str[0]
+    master["prefix"] = master["ingredient_id"].str.extract(r"^([A-Z]+)-")
+    master["category"] = master["prefix"].map(PREFIX_CATEGORY).fillna("Uncategorized")
+
+    # Not present in recipe.csv - has to come from the team/a chef,
+    # not something we can infer from recipe lines.
+    master["storage_type"] = pd.NA
+    master["unit_cost_aud"] = pd.NA
+
+    return master[[
+        "ingredient_id", "ingredient_name", "category", "unit",
+        "storage_type", "unit_cost_aud", "used_in_menu_items",
+    ]].sort_values(["category", "ingredient_id"]).reset_index(drop=True)
