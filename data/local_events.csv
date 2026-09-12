@@ -1,0 +1,7 @@
+"event_id";"event_date";"event_type";"event_name";"venue_name";"start_time";"end_time";"service_period_impacted";"distance_from_restaurant_km";"estimated_attendance";"demand_relevance_score";"is_synthetic"
+"EVT033";"2026-05-15";"Concert";"Sample Arena Concert 202605";"Sample Riverside Arena";"19:00";"22:00";"Dinner";"1";"14704";"0.78";"true"
+"EVT034";"2026-06-13";"Sport";"Sample City Football Match 202606";"Sample City Stadium";"17:30";"20:15";"Dinner";"1.2";"28113";"0.9";"true"
+"EVT035";"2026-06-19";"Concert";"Sample Arena Concert 202606";"Sample Riverside Arena";"19:00";"22:00";"Dinner";"1";"15796";"0.78";"true"
+"EVT036";"2026-07-11";"Sport";"Sample City Football Match 202607";"Sample City Stadium";"17:30";"20:15";"Dinner";"1.2";"37000";"0.9";"true"
+"EVT037";"2026-07-17";"Concert";"Sample Arena Concert 202607";"Sample Riverside Arena";"19:00";"22:00";"Dinner";"1";"16642";"0.78";"true"
+"EVT038";"2026-08-08";"Sport";"Sample City Football Match 202608";"Sample City Stadium";"17:30";"20:15";"Dinner";"1.2";"29985";"0.9";"true"
