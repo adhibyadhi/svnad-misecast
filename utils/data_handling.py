@@ -1,6 +1,12 @@
 import pandas as pd
 
 
+def _clean(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.dropna(how="all")
+    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
+    return df.reset_index(drop=True)
+
+
 def load_menu(path: str) -> pd.DataFrame:
     df = pd.read_csv(path, sep=";")
     df = df.dropna(how="all")
@@ -18,6 +24,25 @@ def load_menu(path: str) -> pd.DataFrame:
     return df.reset_index(drop=True)
 
 
+def load_menu_items(path: str) -> pd.DataFrame:
+    df = pd.read_csv(path, sep=";")
+    return _clean(df)
+
+
+def load_menu_variants(path: str) -> pd.DataFrame:
+    df = pd.read_csv(path, sep=";")
+    return _clean(df)
+
+
+def load_menu_recipes(path: str) -> pd.DataFrame:
+    """Variant-level recipe lines -- one row per (menu_variant_id, ingredient_id).
+    Replaces the old size-guessing loader: sizes are now explicit
+    (menu_variant_id) instead of text embedded in a name field, so there's
+    no more regex extraction or build_blended_recipe() needed for this data."""
+    df = pd.read_csv(path, sep=";")
+    return _clean(df)
+
+
 def load_recipe(path: str) -> pd.DataFrame:
     df = pd.read_csv(path, sep=";")
     df = df.dropna(how="all")
@@ -26,6 +51,20 @@ def load_recipe(path: str) -> pd.DataFrame:
     df["size"] = df["menu_item_name"].str.extract(r"-\s*(Small|Large)$")[0].str.lower()
     df["preparation_loss_pct"] = df["preparation_loss_pct"].str.rstrip("%").astype(float) / 100
     return df.reset_index(drop=True)
+
+
+def load_ingredient_master(path: str) -> pd.DataFrame:
+    """Now shipped directly -- no need to derive it from recipe lines the
+    way build_ingredient_master() did for the first real menu/recipe drop."""
+    df = pd.read_csv(path, sep=";")
+    return _clean(df)
+
+
+def load_historical_sales(path: str) -> pd.DataFrame:
+    df = pd.read_csv(path, sep=";")
+    df = _clean(df)
+    df["date"] = pd.to_datetime(df["date"])
+    return df
 
 
 def check_recipe_completeness(recipe: pd.DataFrame, menu: pd.DataFrame) -> pd.DataFrame:
