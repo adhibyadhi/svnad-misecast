@@ -1,0 +1,223 @@
+<%- include("partials/header", { title: "Import Data" }) %>
+
+<div class="page-card">
+
+  <h1 class="mb-3">
+    Import Restaurant Data
+  </h1>
+
+  <p class="text-muted">
+    Import restaurant data using CSV files.
+  </p>
+
+
+  <div class="alert alert-info">
+
+    Accepted files:
+
+    <strong>
+      menu.csv,
+      promotion.csv,
+      daily_reservation.csv,
+      daily_sales.csv
+    </strong>
+
+  </div>
+
+
+  <!-- Import results appear here -->
+  <div id="importMessage"></div>
+
+
+  <!-- ==================================== -->
+  <!-- MENU -->
+  <!-- ==================================== -->
+
+  <div class="card mb-4">
+
+    <div class="card-body">
+
+      <h4>
+        Menu
+      </h4>
+
+      <p>
+        File:
+        <strong>menu.csv</strong>
+      </p>
+
+      <p>
+        Required columns:
+      </p>
+
+      <code>
+        name,category,price
+      </code>
+
+      <input
+        type="file"
+        id="menuFile"
+        class="form-control mt-3"
+        accept=".csv"
+      >
+
+      <button
+        type="button"
+        class="btn btn-primary mt-3"
+        onclick="importMenu()"
+      >
+        Import Menu
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==================================== -->
+  <!-- PROMOTIONS -->
+  <!-- ==================================== -->
+
+  <div class="card mb-4">
+
+    <div class="card-body">
+
+      <h4>
+        Promotions
+      </h4>
+
+      <p>
+        File:
+        <strong>promotion.csv</strong>
+      </p>
+
+      <p>
+        Required columns:
+      </p>
+
+      <code>
+        menu_item,percentage_discount,date
+      </code>
+
+      <input
+        type="file"
+        id="promotionFile"
+        class="form-control mt-3"
+        accept=".csv"
+      >
+
+      <button
+        type="button"
+        class="btn btn-primary mt-3"
+        onclick="importPromotions()"
+      >
+        Import Promotions
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==================================== -->
+  <!-- DAILY RESERVATIONS -->
+  <!-- ==================================== -->
+
+  <div class="card mb-4">
+
+    <div class="card-body">
+
+      <h4>
+        Daily Reservations
+      </h4>
+
+      <p>
+        File:
+        <strong>daily_reservation.csv</strong>
+      </p>
+
+      <p>
+        Required columns:
+      </p>
+
+      <code>
+        date,total_reservation,total_people
+      </code>
+
+      <input
+        type="file"
+        id="reservationFile"
+        class="form-control mt-3"
+        accept=".csv"
+      >
+
+      <button
+        type="button"
+        class="btn btn-primary mt-3"
+        onclick="importReservations()"
+      >
+        Import Reservations
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==================================== -->
+  <!-- DAILY SALES -->
+  <!-- ==================================== -->
+
+  <div class="card mb-4">
+
+    <div class="card-body">
+
+      <h4>
+        Daily Sales
+      </h4>
+
+      <p>
+        File:
+        <strong>daily_sales.csv</strong>
+      </p>
+
+      <p>
+        Required columns:
+      </p>
+
+      <code>
+        date,menu_name,amount_sold
+      </code>
+
+      <p class="text-muted mt-2">
+
+        menu_name is converted automatically
+        into the menu's database ID.
+
+      </p>
+
+      <input
+        type="file"
+        id="salesFile"
+        class="form-control mt-3"
+        accept=".csv"
+      >
+
+      <button
+        type="button"
+        class="btn btn-primary mt-3"
+        onclick="importSales()"
+      >
+        Import Daily Sales
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script src="/js/import.js"></script>
+
+<%- include("partials/footer") %>

@@ -1,0 +1,17 @@
+{
+  "name": "restaurant-sales-predictor",
+  "version": "1.0.0",
+  "description": "Restaurant menu sales prediction website",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --env-file=.env server.js",
+    "dev": "node --watch --env-file=.env server.js"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "mongodb": "^6.20.0",
+    "mongoose": "^9.10.0"
+  }
+}

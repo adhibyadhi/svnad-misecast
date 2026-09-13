@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>Restaurant Sales Predictor</title>
+
+  <!-- Bootstrap -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+</head>
+
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+
+      <a
+        class="navbar-brand"
+        href="/"
+      >
+        Restaurant Sales Predictor
+      </a>
+
+      <a
+        class="btn btn-light"
+        href="/prediction"
+      >
+        New Prediction
+      </a>
+
+    </div>
+  </nav>
+
+
+  <main class="container mt-5">
+
+    <div class="mb-4">
+
+      <h1>
+        Prediction History
+      </h1>
+
+      <p class="text-muted">
+        Previous restaurant sales prediction requests.
+      </p>
+
+    </div>
+
+
+    <!--
+      If there are no prediction requests yet,
+      display a simple message.
+    -->
+    <% if (requestHistory.length === 0) { %>
+
+      <div class="alert alert-info">
+
+        No predictions have been made yet.
+
+        <a href="/prediction">
+          Make the first prediction.
+        </a>
+
+      </div>
+
+    <% } else { %>
+
+
+      <!-- Prediction history table -->
+      <table class="table table-bordered table-striped">
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Request ID
+            </th>
+
+            <th>
+              Prediction ID
+            </th>
+
+            <th>
+              Date
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <% requestHistory.forEach(request => { %>
+
+            <tr>
+
+              <td>
+                <%= request._id %>
+              </td>
+
+              <td>
+                <%= request.prediction_id %>
+              </td>
+
+              <td>
+                <%= new Date(request.date).toLocaleDateString() %>
+              </td>
+
+            </tr>
+
+          <% }) %>
+
+        </tbody>
+
+      </table>
+
+    <% } %>
+
+  </main>
+
+
+  <!-- Bootstrap JavaScript -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
+  </script>
+
+</body>
+
+</html>

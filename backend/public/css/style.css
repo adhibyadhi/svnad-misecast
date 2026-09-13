@@ -1,0 +1,28 @@
+body {
+  background-color: #f8f9fa;
+}
+
+.page-card {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+}
+
+.form-label {
+  font-weight: 500;
+}
+
+.prediction-date-list {
+  margin-top: 20px;
+}
+
+code {
+  display: block;
+  padding: 10px;
+  background-color: #f1f1f1;
+  border-radius: 5px;
+}
+
+.card {
+  border-radius: 8px;
+}
