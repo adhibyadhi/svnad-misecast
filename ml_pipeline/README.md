@@ -3,16 +3,15 @@
 Data and model pipeline behind the dashboard's "predict" button: a manager
 picks a date, and the expected amount sold per menu is returned.
 
-This is a **separate, simpler pipeline** from `task/notebook.ipynb`. That
-notebook predicts per menu-*variant*, per *service period*, with P50/P90
-quantile bounds -- a richer model against a richer synthetic dataset. This
-pipeline matches the schema in `data.txt` at the project root instead: one
-row per **date**, a fixed `menu_1..menu_15` slot per menu, a single point
-prediction per menu. Built by explicit choice to keep the two independent
-rather than merge them; see the repo's `data.txt` for the source schema
-(`ml_model_input`, `predicted_sales_from_ml`, and the supporting
-`promotion` / `weather` / `events` / `public_holiday` / `daily_reservation`
-/ `menu` tables).
+An earlier, more elaborate pipeline (`task/notebook.ipynb`) predicted per
+menu-*variant*, per *service period*, with P50/P90 quantile bounds, against
+a richer synthetic dataset -- it and its supporting data/docs were removed
+once the team settled on the simpler schema below. This pipeline matches
+`data.txt` at the project root: one row per **date**, a fixed
+`menu_1..menu_15` slot per menu, a single point prediction per menu. See
+the repo's `data.txt` for the source schema (`ml_model_input`,
+`predicted_sales_from_ml`, and the supporting `promotion` / `weather` /
+`events` / `public_holiday` / `daily_reservation` / `menu` tables).
 
 MongoDB, the API, and the dashboard UI are all out of scope here on
 purpose -- this only covers turning stored data into a trained model and a
