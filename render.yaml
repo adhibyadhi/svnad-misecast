@@ -3,7 +3,18 @@ services:
     name: misecast-demand-api
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    # Trains the model as part of the build rather than shipping a
+    # committed .joblib -- Render's free tier has an ephemeral filesystem
+    # (anything written at runtime is lost on restart/spin-down), but the
+    # build step's filesystem persists for that deploy's lifetime, and
+    # training takes under a second against the shipped CSVs.
+    buildCommand: >-
+      pip install -r requirements.txt &&
+      python ml_pipeline/train.py
+      --features ml_pipeline/data/ML_model_input.csv
+      --targets ml_pipeline/data/predicted_sales_from_ml.csv
+      --model-out ml_pipeline/models/demand_model.joblib
+      --metrics-out ml_pipeline/models/metrics.json
     startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
