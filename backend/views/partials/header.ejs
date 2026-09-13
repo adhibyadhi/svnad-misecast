@@ -1,37 +1,397 @@
-<!DOCTYPE html>
+<%
+  /**
+   * Navigation links.
+   *
+   * A link with a children array becomes a
+   * dropdown block. The active link is
+   * highlighted automatically.
+   */
+  const navigationLinks = [
+    { label: "Home", href: "/" },
+    { label: "Menu", href: "/menu" },
+    { label: "Reservations", href: "/reservations" },
+    { label: "Prediction", href: "/prediction" },
+    { label: "Weather", href: "/weather" },
+    { label: "Calendar", href: "/calendar" },
+    { label: "Imports", href: "/import" },
+  ];
+
+  const pageTitle = typeof title !== "undefined" ? title : "MiseCast";
+%><!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<head>
 
-    <title><%= title %></title>
+  <meta charset="UTF-8">
 
-    <!-- Bootstrap -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
 
-    <!-- Our own CSS -->
-    <link rel="stylesheet" href="/css/style.css" />
-  </head>
+  <title>
+    <%= pageTitle %> | MiseCast
+  </title>
 
-  <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div class="container">
-        <a class="navbar-brand" href="/"> Restaurant Sales Predictor </a>
+  <!-- Bootstrap -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
 
-        <div class="navbar-nav">
-          <a class="nav-link" href="/"> Home </a>
+  <!-- Our own CSS -->
+  <link
+    rel="stylesheet"
+    href="/css/style.css"
+  >
 
-          <a class="nav-link" href="/prediction"> Prediction </a>
+  <style>
+    /* Site shell */
 
-          <a class="nav-link" href="/import"> Import </a>
-        </div>
+    body {
+      background-color: #f7f5f0;
+      color: #19231f;
+    }
+
+    /* Navigation bar */
+
+    .mc-nav {
+      background-color: #202926;
+    }
+
+    .mc-nav__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+
+      max-width: 1600px;
+      margin: 0 auto;
+
+      /* Side spacing */
+      padding: 22px 56px;
+    }
+
+    /* Brand */
+
+    .mc-brand {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+
+      text-decoration: none;
+    }
+
+    .mc-brand__mark {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 56px;
+      height: 56px;
+
+      border-radius: 18px;
+
+      background-image: linear-gradient(135deg, #d4ab59, #e8c87a);
+
+      color: #ffffff;
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+
+      flex-shrink: 0;
+    }
+
+    .mc-brand__name {
+      color: #ffffff;
+      font-size: 1.55rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    /* Links */
+
+    .mc-nav__links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .mc-nav__link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+
+      padding: 10px 16px;
+      border: none;
+      border-radius: 12px;
+      background: none;
+
+      color: #c1c4c3;
+      font-family: inherit;
+      font-size: 1.02rem;
+      font-weight: 600;
+      text-decoration: none;
+
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .mc-nav__link:hover {
+      color: #ffffff;
+      background-color: rgba(255, 255, 255, 0.06);
+    }
+
+    .mc-nav__link.is-active {
+      color: #ffffff;
+      background-color: #2f3a36;
+    }
+
+    /* Dropdown block */
+
+    .mc-nav__group {
+      position: relative;
+    }
+
+    .mc-nav__caret {
+      width: 9px;
+      height: 9px;
+
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+
+      transform: rotate(45deg) translate(-2px, -2px);
+    }
+
+    .mc-nav__panel {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      z-index: 1000;
+
+      display: none;
+      min-width: 190px;
+
+      padding: 8px;
+
+      background-color: #202926;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+    }
+
+    .mc-nav__group.is-open .mc-nav__panel {
+      display: block;
+    }
+
+    .mc-nav__panel .mc-nav__link {
+      display: block;
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    /* Page content */
+
+    .mc-shell {
+      width: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
+
+      /* Side spacing matches the navigation bar */
+      padding: 56px;
+    }
+
+    @media (max-width: 991px) {
+      .mc-nav__inner {
+        padding: 18px 24px;
+      }
+
+      .mc-shell {
+        padding: 36px 24px;
+      }
+
+      .mc-brand__mark {
+        width: 46px;
+        height: 46px;
+        border-radius: 15px;
+        font-size: 1.35rem;
+      }
+
+      .mc-brand__name {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Navigation -->
+  <nav class="mc-nav">
+
+    <div class="mc-nav__inner">
+
+      <a
+        class="mc-brand"
+        href="/"
+      >
+
+        <span class="mc-brand__mark">
+          M
+        </span>
+
+        <span class="mc-brand__name">
+          MiseCast
+        </span>
+
+      </a>
+
+
+      <div class="mc-nav__links">
+
+        <% navigationLinks.forEach(link => { %>
+
+          <% if (link.children) { %>
+
+            <!-- Dropdown block -->
+            <div class="mc-nav__group">
+
+              <button
+                class="mc-nav__link"
+                type="button"
+                data-nav-toggle
+              >
+
+                <%= link.label %>
+
+                <span class="mc-nav__caret"></span>
+
+              </button>
+
+
+              <div class="mc-nav__panel">
+
+                <% link.children.forEach(child => { %>
+
+                  <a
+                    class="mc-nav__link"
+                    href="<%= child.href %>"
+                  >
+                    <%= child.label %>
+                  </a>
+
+                <% }) %>
+
+              </div>
+
+            </div>
+
+          <% } else { %>
+
+            <a
+              class="mc-nav__link"
+              href="<%= link.href %>"
+            >
+              <%= link.label %>
+            </a>
+
+          <% } %>
+
+        <% }) %>
+
       </div>
-    </nav>
 
-    <main class="container mt-5"></main>
-  </body>
-</html>
+    </div>
+
+  </nav>
+
+
+  <!--
+    Highlight the current page and
+    open or close dropdown blocks.
+  -->
+  <script>
+    (function () {
+      const currentPath = window.location.pathname;
+
+      const links = document.querySelectorAll(".mc-nav__link[href]");
+
+      let bestLink = null;
+
+      let bestLength = -1;
+
+      links.forEach(function (link) {
+        const href = link.getAttribute("href");
+
+        const isMatch =
+          href === "/"
+            ? currentPath === "/"
+            : currentPath === href || currentPath.startsWith(href + "/");
+
+        if (isMatch && href.length > bestLength) {
+          bestLink = link;
+
+          bestLength = href.length;
+        }
+      });
+
+      if (bestLink) {
+        bestLink.classList.add("is-active");
+
+        /**
+         * A child page also highlights its block.
+         */
+        const parentGroup = bestLink.closest(".mc-nav__group");
+
+        if (parentGroup) {
+          parentGroup
+            .querySelector("[data-nav-toggle]")
+            .classList.add("is-active");
+        }
+      }
+
+      /**
+       * Dropdown blocks.
+       */
+      const toggles = document.querySelectorAll("[data-nav-toggle]");
+
+      toggles.forEach(function (toggle) {
+        toggle.addEventListener("click", function (event) {
+          event.stopPropagation();
+
+          const group = toggle.closest(".mc-nav__group");
+
+          const wasOpen = group.classList.contains("is-open");
+
+          document
+            .querySelectorAll(".mc-nav__group.is-open")
+            .forEach(function (openGroup) {
+              openGroup.classList.remove("is-open");
+            });
+
+          if (!wasOpen) {
+            group.classList.add("is-open");
+          }
+        });
+      });
+
+      /**
+       * Close when clicking elsewhere.
+       */
+      document.addEventListener("click", function () {
+        document
+          .querySelectorAll(".mc-nav__group.is-open")
+          .forEach(function (openGroup) {
+            openGroup.classList.remove("is-open");
+          });
+      });
+    })();
+  </script>
+
+
+  <main class="mc-shell">

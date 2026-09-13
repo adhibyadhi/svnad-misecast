@@ -138,34 +138,3 @@ export async function buildMLInputForDate(dateString) {
 
   return mlInput;
 }
-
-/**
- * Build a predicted_sales_from_ml document from one ML input
- * and the FastAPI prediction result for that same day.
- *
- * apiResult.predictions looks like { menu_1: 33, menu_2: 24, ... } --
- * menu names come from mlInput, amounts come from apiResult.
- */
-export function buildPredictionDocument(mlInput, apiResult) {
-  if (!apiResult || !apiResult.predictions) {
-    throw new Error("ML API response is missing a `predictions` object.");
-  }
-
-  const prediction = {};
-
-  for (let i = 1; i <= 15; i++) {
-    const menuKey = `menu_${i}`;
-    const amountKey = `menu_${i}_amount`;
-
-    const amount = apiResult.predictions[menuKey];
-
-    if (amount === undefined) {
-      throw new Error(`ML API response is missing a prediction for ${menuKey}.`);
-    }
-
-    prediction[menuKey] = mlInput[menuKey];
-    prediction[amountKey] = amount;
-  }
-
-  return prediction;
-}

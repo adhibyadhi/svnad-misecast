@@ -1,0 +1,536 @@
+<%- include("../partials/header") %>
+
+<%
+  const weekdayBaselines = {
+    Sunday: 184,
+    Monday: 142,
+    Tuesday: 151,
+    Wednesday: 158,
+    Thursday: 169,
+    Friday: 201,
+    Saturday: 219,
+  };
+
+  const sampleMenuItems = [
+    "Chicken Teriyaki Bowl",
+    "Sashimi Poke Bowl",
+    "Wagyu Beef Bowl",
+    "Miso Falafel Bowl",
+  ];
+
+  const weekdayOrder = {
+    Sunday: 0,
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6,
+  };
+
+  const simulatedDays = context.days.map((day, index) => {
+    const baseOrders = weekdayBaselines[day.day_of_week] ?? 160;
+    const reservationRows = day.reservations?.by_service ?? [];
+    const usableReservationRows = reservationRows.filter(
+      (reservation) => reservation.confirmed_reservation_covers !== null &&
+        reservation.confirmed_reservation_covers !== undefined,
+    );
+    const reservationCovers = usableReservationRows.reduce(
+      (total, reservation) => total + Number(reservation.confirmed_reservation_covers),
+      0,
+    );
+    const reservationsKnown = Boolean(
+      day.reservations?.service_periods_known && usableReservationRows.length > 0,
+    );
+
+    const eventCount = day.local_events?.count_usable
+      ? Number(day.local_events.provider_event_count ?? 0)
+      : Number(day.local_events?.saved_listing_count ?? 0);
+    const isHoliday = day.public_holiday?.is_public_holiday === true;
+
+    const eventBoost = Math.min(eventCount * 0.025, 0.2);
+    const holidayBoost = isHoliday ? 0.18 : 0;
+    const reservationBoost = reservationsKnown
+      ? Math.min(reservationCovers / Math.max(baseOrders, 1) * 0.2, 0.18)
+      : 0;
+    const deterministicVariation = (((Number(day.date.slice(-2)) * 7) % 11) - 5) / 100;
+    const changeRatio = eventBoost + holidayBoost + reservationBoost + deterministicVariation;
+    const predictedOrders = Math.max(
+      reservationsKnown ? reservationCovers : 0,
+      Math.round(baseOrders * (1 + changeRatio)),
+    );
+    const averageOrderValue = 42 + (day.is_weekend ? 4 : 0) + (isHoliday ? 2 : 0);
+    const predictedSales = predictedOrders * averageOrderValue;
+    const demandChange = Math.round((predictedOrders - baseOrders) / baseOrders * 100);
+
+    let demandLabel = "Normal";
+    let demandClass = "normal";
+    if (demandChange >= 25) {
+      demandLabel = "Very high";
+      demandClass = "very-high";
+    } else if (demandChange >= 10) {
+      demandLabel = "High";
+      demandClass = "high";
+    } else if (demandChange <= -10) {
+      demandLabel = "Low";
+      demandClass = "low";
+    }
+
+    const orderedItems = sampleMenuItems.map(
+      (_, itemIndex) => sampleMenuItems[(itemIndex + index) % sampleMenuItems.length],
+    );
+    const itemShares = [0.25, 0.2, 0.16];
+    const topItems = orderedItems.slice(0, 3).map((name, itemIndex) => ({
+      name,
+      quantity: Math.max(1, Math.round(predictedOrders * itemShares[itemIndex])),
+    }));
+
+    const parsedDate = new Date(`${day.date}T00:00:00Z`);
+    return {
+      ...day,
+      index,
+      dateNumber: parsedDate.getUTCDate(),
+      monthIndex: parsedDate.getUTCMonth(),
+      year: parsedDate.getUTCFullYear(),
+      predictedOrders,
+      predictedSales,
+      reservationCovers,
+      reservationsKnown,
+      demandChange,
+      demandLabel,
+      demandClass,
+      eventCount,
+      isHoliday,
+      topItems,
+    };
+  });
+
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+  const visibleMonths = [...new Set(simulatedDays.map((day) => monthNames[day.monthIndex]))];
+  const visibleYears = [...new Set(simulatedDays.map((day) => day.year))];
+  const firstDayOffset = simulatedDays.length > 0
+    ? weekdayOrder[simulatedDays[0].day_of_week] ?? 0
+    : 0;
+  const trailingCellCount = simulatedDays.length > 0
+    ? (7 - ((firstDayOffset + simulatedDays.length) % 7)) % 7
+    : 0;
+  const formatSales = (value) => `$${(value / 1000).toFixed(1)}k`;
+%>
+
+<style>
+  .prediction-page {
+    --pc-ink: #111a35;
+    --pc-muted: #62708a;
+    --pc-line: #dfe4eb;
+    --pc-blue: #2da8df;
+    --pc-blue-soft: #eff9ff;
+    --pc-green: #43b777;
+    --pc-green-soft: #effbf4;
+    --pc-gold: #e6ad35;
+    --pc-gold-soft: #fff9e9;
+    color: var(--pc-ink);
+  }
+
+  .prediction-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .prediction-header-copy { max-width: 50rem; }
+  .prediction-title { letter-spacing: -0.04em; }
+  .simulation-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+    border-radius: 999px;
+    padding: 0.45rem 0.75rem;
+    color: #805a08;
+    background: #fff1c9;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .prediction-calendar {
+    overflow: hidden;
+    border: 1px solid var(--pc-line);
+    border-radius: 0.95rem;
+    background: #fff;
+    box-shadow: 0 18px 45px rgba(28, 42, 70, 0.07);
+  }
+
+  .prediction-calendar-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid var(--pc-line);
+    padding: 0.9rem 1.15rem;
+    background: #fbfcfe;
+  }
+
+  .prediction-calendar-label {
+    color: var(--pc-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .prediction-calendar-value {
+    margin-left: 0.4rem;
+    color: var(--pc-ink);
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-transform: none;
+  }
+
+  .prediction-calendar-scroll { overflow-x: auto; }
+  .prediction-weekdays,
+  .prediction-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(10.5rem, 1fr));
+    min-width: 73.5rem;
+  }
+
+  .prediction-weekdays {
+    border-bottom: 1px solid var(--pc-line);
+    background: #fbfcfe;
+  }
+
+  .prediction-weekdays div {
+    border-right: 1px solid var(--pc-line);
+    padding: 0.72rem;
+    color: var(--pc-muted);
+    text-align: center;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .prediction-weekdays div:last-child { border-right: 0; }
+  .prediction-grid { align-items: stretch; }
+
+  .prediction-day,
+  .prediction-empty-day {
+    min-height: 19rem;
+    border-right: 1px solid var(--pc-line);
+    border-bottom: 1px solid var(--pc-line);
+  }
+
+  .prediction-day:nth-child(7n),
+  .prediction-empty-day:nth-child(7n) { border-right: 0; }
+
+  .prediction-day {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 0.9rem;
+    background: #fff;
+  }
+
+  .prediction-day.today {
+    z-index: 1;
+    border: 2px solid var(--pc-blue);
+    border-radius: 0.7rem;
+    background: var(--pc-blue-soft);
+  }
+
+  .prediction-day.tomorrow {
+    z-index: 1;
+    border: 2px solid #83dab0;
+    border-radius: 0.7rem;
+    background: var(--pc-green-soft);
+  }
+
+  .prediction-day.next-day {
+    z-index: 1;
+    border: 2px solid #efcf75;
+    border-radius: 0.7rem;
+    background: var(--pc-gold-soft);
+  }
+
+  .prediction-empty-day { background: #fbfcfd; }
+  .prediction-date-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .prediction-date-number {
+    font-size: 1.5rem;
+    font-weight: 850;
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  .prediction-day-name { margin-top: 0.3rem; color: var(--pc-muted); font-size: 0.78rem; }
+  .prediction-relative-label {
+    border-radius: 0.4rem;
+    padding: 0.35rem 0.55rem;
+    font-size: 0.67rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .today .prediction-relative-label { color: #1685bb; background: #dcedfb; }
+  .tomorrow .prediction-relative-label { color: #228a55; background: #dff5e8; }
+  .next-day .prediction-relative-label { color: #b57b08; background: #fff0c7; }
+
+  .prediction-metrics { display: grid; gap: 0.35rem; }
+  .prediction-metric {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: var(--pc-muted);
+    font-size: 0.73rem;
+  }
+
+  .prediction-metric strong { color: var(--pc-ink); font-size: 0.78rem; text-align: right; }
+  .prediction-demand.normal { color: #238653; }
+  .prediction-demand.high { color: #d83d54; }
+  .prediction-demand.very-high { color: #df8610; }
+  .prediction-demand.low { color: #3b82c4; }
+
+  .prediction-items {
+    margin-top: 0.75rem;
+    border-top: 1px solid rgba(125, 139, 164, 0.2);
+    padding-top: 0.65rem;
+  }
+
+  .prediction-items-title { margin-bottom: 0.38rem; color: var(--pc-muted); font-size: 0.66rem; font-weight: 700; }
+  .prediction-item {
+    display: grid;
+    grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+    gap: 0.35rem;
+    align-items: center;
+    margin-top: 0.28rem;
+    font-size: 0.69rem;
+  }
+
+  .prediction-item-rank {
+    display: grid;
+    width: 1.15rem;
+    height: 1.15rem;
+    place-items: center;
+    border-radius: 50%;
+    color: #506078;
+    background: rgba(120, 140, 165, 0.1);
+    font-weight: 800;
+  }
+
+  .prediction-item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prediction-context {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: auto;
+    padding-top: 0.75rem;
+  }
+
+  .prediction-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border: 1px solid #dfe5ed;
+    border-radius: 999px;
+    padding: 0.25rem 0.42rem;
+    color: #52627a;
+    background: rgba(255, 255, 255, 0.7);
+    font-size: 0.59rem;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+
+  .prediction-chip.event { color: #2b68aa; border-color: #cfe3f7; background: #edf6ff; }
+  .prediction-chip.holiday { color: #c53d55; border-color: #f3cad1; background: #fff0f2; }
+  .prediction-chip.weather { color: #8b6a0f; border-color: #f1dfad; background: #fff8df; }
+
+  .simulation-note {
+    display: flex;
+    gap: 0.7rem;
+    align-items: flex-start;
+    margin-top: 1rem;
+    color: var(--pc-muted);
+    font-size: 0.76rem;
+  }
+
+  .simulation-note-icon {
+    display: grid;
+    width: 1.25rem;
+    height: 1.25rem;
+    place-items: center;
+    flex: 0 0 auto;
+    border: 1px solid #aeb9c8;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 800;
+  }
+
+  .refresh-results-card { border-radius: 0.85rem; }
+
+  @media (max-width: 767.98px) {
+    .prediction-title { font-size: 2rem; }
+    .prediction-calendar-toolbar { align-items: flex-start; }
+  }
+</style>
+
+<div class="prediction-page">
+  <header class="prediction-header">
+    <div class="prediction-header-copy">
+      <div class="simulation-badge"><span aria-hidden="true">◇</span> Simulation mode</div>
+      <h1 class="display-6 fw-bold prediction-title mb-2">Daily sales prediction</h1>
+      <p class="text-secondary mb-1">
+        Simulated sales, orders and menu demand using reservations, weather readiness,
+        nearby events and Victorian public holidays.
+      </p>
+      <p class="text-secondary mb-0">
+        <%= context.date_start %> to <%= context.date_end %> · <%= context.timezone %>
+      </p>
+    </div>
+
+    <form method="post" action="/context/refresh">
+      <button type="submit" class="btn btn-primary">↻ Refresh all</button>
+    </form>
+  </header>
+
+  <% if (refreshResults.length > 0) { %>
+    <section class="card refresh-results-card mb-4" aria-labelledby="refresh-results-heading">
+      <div class="card-body p-4">
+        <h2 id="refresh-results-heading" class="h5 fw-bold">Refresh results</h2>
+        <ul class="list-group list-group-flush">
+          <% for (const result of refreshResults) { %>
+            <li class="list-group-item px-0 bg-transparent">
+              <span class="badge <%= result.success ? 'text-bg-success' : 'text-bg-warning' %> me-2">
+                <%= result.success ? "Ready" : "Needs attention" %>
+              </span>
+              <strong><%= result.label %>:</strong> <%= result.message %>
+            </li>
+          <% } %>
+        </ul>
+      </div>
+    </section>
+  <% } %>
+
+  <% if (simulatedDays.length === 0) { %>
+    <div class="alert alert-info">No daily context records are available for simulation.</div>
+  <% } else { %>
+    <section class="prediction-calendar" aria-labelledby="prediction-calendar-heading">
+      <div class="prediction-calendar-toolbar">
+        <div class="prediction-calendar-label">
+          Month:
+          <span id="prediction-calendar-heading" class="prediction-calendar-value"><%= visibleMonths.join(" – ") %></span>
+        </div>
+        <div class="prediction-calendar-label">
+          Year:
+          <span class="prediction-calendar-value"><%= visibleYears.join(" – ") %></span>
+        </div>
+      </div>
+
+      <div class="prediction-calendar-scroll">
+        <div class="prediction-weekdays" aria-hidden="true">
+          <div>Sunday</div><div>Monday</div><div>Tuesday</div><div>Wednesday</div>
+          <div>Thursday</div><div>Friday</div><div>Saturday</div>
+        </div>
+
+        <div class="prediction-grid">
+          <% for (let index = 0; index < firstDayOffset; index += 1) { %>
+            <div class="prediction-empty-day" aria-hidden="true"></div>
+          <% } %>
+
+          <% for (const day of simulatedDays) { %>
+            <article class="prediction-day <%= day.index === 0 ? 'today' : day.index === 1 ? 'tomorrow' : day.index === 2 ? 'next-day' : '' %>">
+              <div class="prediction-date-row">
+                <div>
+                  <div class="prediction-date-number"><%= day.dateNumber %></div>
+                  <div class="prediction-day-name"><%= day.day_of_week %></div>
+                </div>
+                <% if (day.index < 3) { %>
+                  <span class="prediction-relative-label"><%= day.index === 0 ? "Today" : day.index === 1 ? "Tomorrow" : "Next day" %></span>
+                <% } %>
+              </div>
+
+              <div class="prediction-metrics">
+                <div class="prediction-metric"><span>Forecast sales</span><strong><%= formatSales(day.predictedSales) %></strong></div>
+                <div class="prediction-metric"><span>Orders</span><strong><%= day.predictedOrders %></strong></div>
+                <div class="prediction-metric"><span>Reservations</span><strong><%= day.reservationsKnown ? day.reservationCovers : "Unknown" %></strong></div>
+                <div class="prediction-metric">
+                  <span>Demand</span>
+                  <strong class="prediction-demand <%= day.demandClass %>">
+                    <%= day.demandLabel %>, <%= day.demandChange >= 0 ? "+" : "" %><%= day.demandChange %>%
+                  </strong>
+                </div>
+              </div>
+
+              <div class="prediction-items">
+                <div class="prediction-items-title"><%= day.index < 3 ? "Top menu items" : "Top predicted item" %></div>
+                <% for (const [itemIndex, item] of day.topItems.entries()) { %>
+                  <% if (day.index < 3 || itemIndex === 0) { %>
+                    <div class="prediction-item">
+                      <span class="prediction-item-rank"><%= itemIndex + 1 %></span>
+                      <span class="prediction-item-name"><%= item.name %></span>
+                      <strong><%= item.quantity %></strong>
+                    </div>
+                  <% } %>
+                <% } %>
+              </div>
+
+              <div class="prediction-context">
+                <span class="prediction-chip weather">☁ <%= day.weather?.usable ? "Weather ready" : "Weather unknown" %></span>
+                <% if (day.eventCount > 0) { %>
+                  <span class="prediction-chip event">◫ <%= day.eventCount %> event<%= day.eventCount === 1 ? "" : "s" %></span>
+                <% } else { %>
+                  <span class="prediction-chip">No major event</span>
+                <% } %>
+                <% if (day.isHoliday) { %>
+                  <span class="prediction-chip holiday" title="<%= day.public_holiday.names.join(', ') %>">◇ Public holiday</span>
+                <% } else { %>
+                  <span class="prediction-chip">No holiday</span>
+                <% } %>
+              </div>
+            </article>
+          <% } %>
+
+          <% for (let index = 0; index < trailingCellCount; index += 1) { %>
+            <div class="prediction-empty-day" aria-hidden="true"></div>
+          <% } %>
+        </div>
+      </div>
+    </section>
+
+    <div class="simulation-note">
+      <span class="simulation-note-icon" aria-hidden="true">i</span>
+      <span>
+        These values are deterministic simulations, not trained-model forecasts. They combine a weekday sales baseline
+        with saved reservation covers, eligible nearby-event counts and public-holiday adjustments. The sample top-item
+        names should be replaced by model output later.
+      </span>
+    </div>
+  <% } %>
+
+  <div class="d-flex flex-wrap gap-3 mt-4">
+    <a href="/reservations">Manage reservations</a>
+    <a href="/weather">Weather details</a>
+    <a href="/holidays">Public holidays</a>
+    <a href="/events">Event details</a>
+    <a href="/forecasts">Forecast readiness</a>
+    <a href="/api/context">View context JSON</a>
+  </div>
+</div>
+
+<%- include("../partials/footer") %>

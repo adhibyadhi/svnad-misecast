@@ -60,8 +60,7 @@ export async function getWeatherData(requestedDates) {
   const response = await fetch(url);
 
   if (!response.ok) {
-    const body = await response.text().catch(() => "");
-    throw new Error(`Weather API request failed with status ${response.status}. ${body}`.trim());
+    throw new Error("Weather API request failed.");
   }
 
   const data = await response.json();
@@ -166,8 +165,7 @@ export async function getHolidayData(requestedDates) {
     const response = await fetch(url);
 
     if (!response.ok) {
-      const body = await response.text().catch(() => "");
-      throw new Error(`Public holiday API request failed for ${year} with status ${response.status}. ${body}`.trim());
+      throw new Error(`Public holiday API request failed for ${year}.`);
     }
 
     const holidays = await response.json();

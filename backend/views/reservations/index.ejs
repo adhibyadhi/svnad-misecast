@@ -1,0 +1,168 @@
+<%- include("../partials/header") %>
+
+<header class="mc-page-header">
+  <p class="mc-eyebrow">Forward planning</p>
+  <h1 class="display-6 fw-bold mc-page-title mb-2">Reservations</h1>
+  <p class="mc-page-copy mb-0">
+    Record expected covers by date and service period to improve demand planning.
+    Covers are people; bookings are reservation groups.
+  </p>
+</header>
+
+<% if (errorMessage) { %>
+  <div class="alert alert-danger mb-4" role="alert"><%= errorMessage %></div>
+<% } %>
+
+<div class="row g-4 align-items-start mb-5">
+  <div class="col-lg-8">
+    <section class="card" aria-labelledby="add-reservation-heading">
+      <div class="card-header px-4 py-3">
+        <div class="d-flex gap-3 align-items-center">
+          <span class="mc-icon" aria-hidden="true">＋</span>
+          <div>
+            <h2 id="add-reservation-heading" class="h5 fw-bold mb-1">Add forecast totals</h2>
+            <p class="small text-secondary mb-0">Enter the latest reservation snapshot for one service.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body p-4">
+        <form method="post" action="/reservations">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="reservation-date" class="form-label">Date</label>
+              <input
+                id="reservation-date"
+                class="form-control"
+                type="date"
+                name="date"
+                min="<%= overview.today %>"
+                value="<%= form.date ?? overview.today %>"
+                required
+              />
+            </div>
+
+            <div class="col-md-6">
+              <label for="service-period" class="form-label">Service period</label>
+              <input
+                id="service-period"
+                class="form-control"
+                name="service_period"
+                list="service-period-options"
+                maxlength="80"
+                value="<%= form.service_period ?? '' %>"
+                aria-describedby="service-period-help"
+                required
+              />
+              <datalist id="service-period-options">
+                <% for (const servicePeriod of overview.servicePeriods) { %>
+                  <option value="<%= servicePeriod %>"></option>
+                <% } %>
+              </datalist>
+              <div id="service-period-help" class="form-text">Use the exact label from your sales data.</div>
+            </div>
+
+            <%
+              const numberFields = [
+                ["bookings_count", "Booking groups", false],
+                ["reserved_covers", "Reserved covers", false],
+                ["cancelled_covers", "Cancelled covers", false],
+                ["confirmed_covers", "Confirmed covers", true],
+              ];
+            %>
+
+            <% for (const [name, label, required] of numberFields) { %>
+              <div class="col-sm-6">
+                <label for="<%= name %>" class="form-label"><%= label %><%= required ? " *" : "" %></label>
+                <input
+                  id="<%= name %>"
+                  class="form-control"
+                  type="number"
+                  name="<%= name %>"
+                  min="0"
+                  step="1"
+                  value="<%= form[name] ?? '' %>"
+                  <% if (required) { %>required<% } %>
+                />
+              </div>
+            <% } %>
+          </div>
+
+          <div class="mc-soft-panel p-3 my-4 small text-secondary">
+            Leave optional values blank when unknown. Enter 0 only after confirming
+            there are none. Saved entries use today's snapshot date and are marked as real data.
+          </div>
+
+          <button type="submit" class="btn btn-primary">Save reservation totals</button>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <div class="col-lg-4">
+    <aside class="card" aria-labelledby="reservation-guide-heading">
+      <div class="card-body p-4">
+        <p class="mc-eyebrow">Data guide</p>
+        <h2 id="reservation-guide-heading" class="h5 fw-bold mb-3">What to enter</h2>
+        <dl class="mb-0">
+          <dt class="small">Bookings</dt>
+          <dd class="small text-secondary mb-3">The number of reservation groups.</dd>
+          <dt class="small">Reserved covers</dt>
+          <dd class="small text-secondary mb-3">People booked before cancellations.</dd>
+          <dt class="small">Confirmed covers</dt>
+          <dd class="small text-secondary mb-0">The people currently expected to arrive.</dd>
+        </dl>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+  <div>
+    <p class="mc-eyebrow">Forecast window</p>
+    <h2 class="h3 fw-bold mc-page-title mb-0">Next 14 days</h2>
+  </div>
+  <span class="badge text-bg-secondary"><%= overview.rows.length %> saved records</span>
+</div>
+
+<% if (overview.rows.length === 0) { %>
+  <div class="card">
+    <div class="card-body p-5 text-center">
+      <span class="mc-icon mb-3" aria-hidden="true">◫</span>
+      <h3 class="h5 fw-bold">No saved forecasts yet</h3>
+      <p class="text-secondary mb-0">This does not mean there are zero reservations.</p>
+    </div>
+  </div>
+<% } else { %>
+  <section class="card overflow-hidden" aria-label="Upcoming reservation totals">
+    <div class="table-responsive border-0 rounded-0">
+      <table class="table table-striped align-middle mb-0">
+        <caption class="px-4 py-3 text-secondary">Saved forecast totals. A dash indicates an unknown value.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Date</th><th scope="col">Service</th><th scope="col">Bookings</th>
+            <th scope="col">Reserved</th><th scope="col">Cancelled</th><th scope="col">Confirmed</th>
+            <th scope="col">Snapshot</th><th scope="col">Source</th><th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const row of overview.rows) { %>
+            <tr>
+              <td class="text-nowrap fw-semibold"><%= row.date %></td>
+              <td><%= row.service_period %></td>
+              <td><%= row.bookings_count ?? "—" %></td>
+              <td><%= row.reserved_covers ?? "—" %></td>
+              <td><%= row.cancelled_covers ?? "—" %></td>
+              <td class="fw-bold"><%= row.confirmed_covers ?? "—" %></td>
+              <td class="text-nowrap"><%= row.data_snapshot_date ?? "—" %></td>
+              <td><span class="badge <%= row.is_synthetic ? 'text-bg-warning' : 'text-bg-success' %>"><%= row.is_synthetic ? "Synthetic" : "Real" %></span></td>
+              <td><a class="btn btn-sm btn-outline-primary" href="/reservations/<%= row._id %>/edit">Edit</a></td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+<% } %>
+
+<%- include("../partials/footer") %>

@@ -1,28 +1,32 @@
-body {
-  background-color: #f8f9fa;
+.misecast-navbar {
+  background-color: #192722 !important;
 }
 
-.page-card {
-  background-color: white;
-  padding: 30px;
-  border-radius: 8px;
+.misecast-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  color: #ffffff !important;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -1.5px;
 }
 
-.form-label {
-  font-weight: 500;
+.misecast-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border: 2px solid #f6cf7c;
+  border-radius: 20px;
+  background-color: #edb84f;
+  color: #ffffff;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
-.prediction-date-list {
-  margin-top: 20px;
-}
-
-code {
-  display: block;
-  padding: 10px;
-  background-color: #f1f1f1;
-  border-radius: 5px;
-}
-
-.card {
-  border-radius: 8px;
+.misecast-name {
+  color: #ffffff;
 }
