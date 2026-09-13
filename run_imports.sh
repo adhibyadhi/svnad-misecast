@@ -1,68 +1,94 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-API="http://127.0.0.1:3000/api/imports"
-SOURCE_DIR="./data"
-GENERATED_DIR="../data/mongo_import"
+BASE_URL="http://127.0.0.1:3000"
+SOURCE_DIR="data/import_ready"
+BACKEND_DIR="backend"
+POLL_INTERVAL=1
+MAX_POLLS=60
 
-import_file() {
-  local entity="$1" filepath="$2"
-  local key="import-$(date +%s)-$entity-$RANDOM"
+ENTITIES=(
+  "menu_items:menu_items.csv"
+  "ingredient_master:ingredient_master.csv"
+  "menu_variants:menu_variants.csv"
+  "menu_recipes:menu_recipes.csv"
+  "suppliers:suppliers.csv"
+  "inventory_batches_expiry:inventory_batches_expiry.csv"
+  "promotion_history:promotion_history.csv"
+  "historical_sales:historical_sales.csv"
+  "weather:weather.csv"
+  "reservations:reservations.csv"
+  "local_events:local_events.csv"
+  "data_dictionary:data_dictionary.csv"
+  "data_assumptions:data_assumptions.csv"
+  "demand_forecast:demand_forecast.csv"
+  "runout_predictions:runout_predictions.csv"
+  "order_recommendations:order_recommendations.csv"
+  "expiry_menu_actions:expiry_menu_actions.csv"
+)
 
-  echo "=== $entity ($filepath) ==="
-  local submit_response
-  submit_response=$(curl -s -X POST \
-    "$API/$entity?sourceName=$(basename "$filepath")" \
-    -H 'Content-Type: text/csv' -H 'X-MiseCast-Request: 1' \
-    -H "Idempotency-Key: $key" \
-    --data-binary "@$filepath")
+for pair in "${ENTITIES[@]}"; do
+  ENTITY="${pair%%:*}"
+  FILE="${pair##*:}"
+  FILE_PATH="$SOURCE_DIR/$FILE"
 
-  local job_id
-  job_id=$(echo "$submit_response" | jq -r '.job.import_job_id')
-  if [ "$job_id" = "null" ] || [ -z "$job_id" ]; then
-    echo "Submission failed:"; echo "$submit_response" | jq .; exit 1
+  echo "=== $ENTITY ($FILE_PATH) ==="
+
+  if [ ! -f "$FILE_PATH" ]; then
+    echo "  SKIP: file not found."
+    continue
   fi
 
-  npm run import:worker --silent
+  IDEMPOTENCY_KEY="svnad-${ENTITY}-v1"
 
-  local status
-  status=$(curl -s "$API/jobs/$job_id" | jq -r '.job.status')
-  local job_json
-  job_json=$(curl -s "$API/jobs/$job_id")
+  RESPONSE=$(curl -sS -X POST \
+    "$BASE_URL/api/imports/$ENTITY?sourceName=$FILE" \
+    -H "Content-Type: text/csv" \
+    -H "X-MiseCast-Request: 1" \
+    -H "Idempotency-Key: $IDEMPOTENCY_KEY" \
+    --data-binary @"$FILE_PATH")
 
-  echo "$job_json" | jq '.job | {status, rows_processed, rows_inserted, rows_updated, rows_skipped, rows_failed, error_summary}'
+  JOB_ID=$(echo "$RESPONSE" | jq -r '.job.import_job_id // empty')
 
-  if [ "$status" != "succeeded" ] && [ "$status" != "partial" ]; then
-    echo "STOPPED: $entity did not succeed (status: $status). Fix this before continuing."
+  if [ -z "$JOB_ID" ]; then
+    echo "  SUBMIT FAILED. Response:"
+    echo "$RESPONSE" | jq .
     exit 1
   fi
-  if [ "$(echo "$job_json" | jq '.job.rows_failed')" != "0" ]; then
-    echo "Some rows failed -- check details:"
-    curl -s "$API/jobs/$job_id/errors" | jq .
-    echo "Review the errors above. Continuing to the next file, but come back to this."
+
+  echo "  submitted -> job $JOB_ID"
+
+  (cd "$BACKEND_DIR" && npm run import:worker --silent)
+
+  STATUS="queued"
+  for _ in $(seq 1 "$MAX_POLLS"); do
+    STATUS_RESPONSE=$(curl -sS "$BASE_URL/api/imports/jobs/$JOB_ID" -H "X-MiseCast-Request: 1")
+    STATUS=$(echo "$STATUS_RESPONSE" | jq -r '.job.status')
+    if [ "$STATUS" = "succeeded" ] || [ "$STATUS" = "partial" ] || [ "$STATUS" = "failed" ]; then
+      break
+    fi
+    sleep "$POLL_INTERVAL"
+  done
+
+  ROWS_PROCESSED=$(echo "$STATUS_RESPONSE" | jq -r '.job.rows_processed')
+  ROWS_INSERTED=$(echo "$STATUS_RESPONSE" | jq -r '.job.rows_inserted')
+  ROWS_UPDATED=$(echo "$STATUS_RESPONSE" | jq -r '.job.rows_updated')
+  ROWS_SKIPPED=$(echo "$STATUS_RESPONSE" | jq -r '.job.rows_skipped')
+  ROWS_FAILED=$(echo "$STATUS_RESPONSE" | jq -r '.job.rows_failed')
+
+  echo "  status=$STATUS processed=$ROWS_PROCESSED inserted=$ROWS_INSERTED updated=$ROWS_UPDATED skipped=$ROWS_SKIPPED failed=$ROWS_FAILED"
+
+  if [ "$ROWS_FAILED" != "0" ] && [ "$ROWS_FAILED" != "null" ]; then
+    echo "  --- row errors ---"
+    curl -sS "$BASE_URL/api/imports/jobs/$JOB_ID/errors?page=1&pageSize=25" -H "X-MiseCast-Request: 1" | jq .
   fi
-  echo
-}
 
-# 1. Source data -- order matters, per validateImportReferences.js
-import_file menu_items "$SOURCE_DIR/menu_items.csv"
-import_file ingredient_master "$SOURCE_DIR/ingredient_master.csv"
-import_file menu_variants "$SOURCE_DIR/menu_variants.csv"
-import_file menu_recipes "$SOURCE_DIR/menu_recipes.csv"
-import_file suppliers "$SOURCE_DIR/suppliers.csv"
-import_file inventory_batches_expiry "$SOURCE_DIR/inventory_batches_expiry.csv"
-import_file promotion_history "$SOURCE_DIR/promotion_history.csv"
-import_file historical_sales "$SOURCE_DIR/historical_sales.csv"
-import_file weather "$SOURCE_DIR/weather.csv"
-import_file reservations "$SOURCE_DIR/reservations.csv"
-import_file local_events "$SOURCE_DIR/local_events.csv"
-import_file data_dictionary "$SOURCE_DIR/data_dictionary.csv"
-import_file data_assumptions "$SOURCE_DIR/data_assumptions.csv"
+  if [ "$STATUS" = "failed" ]; then
+    echo "  HALTING: $ENTITY failed to import. Fix the source data and rerun."
+    exit 1
+  fi
 
-# 2. Our pipeline's own output -- any order among these four
-import_file demand_forecast "$GENERATED_DIR/demand_forecast.csv"
-import_file runout_predictions "$GENERATED_DIR/runout_predictions.csv"
-import_file order_recommendations "$GENERATED_DIR/order_recommendations.csv"
-import_file expiry_menu_actions "$GENERATED_DIR/expiry_menu_actions.csv"
+  echo ""
+done
 
-echo "All imports complete."
+echo "All entities submitted."
