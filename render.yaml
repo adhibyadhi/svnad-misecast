@@ -9,3 +9,46 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.13
+
+  - type: web
+    name: misecast-dashboard
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /
+    envVars:
+      # Atlas connection string -- fill in after creating the free M0
+      # cluster (Database -> Connect -> Drivers -> copy the mongodb+srv:// URI).
+      - key: MONGODB_URI
+        sync: false
+      - key: DB_NAME
+        value: restaurant_forecast
+
+      # Restaurant location, used for the weather forecast (Open-Meteo).
+      - key: RESTAURANT_LATITUDE
+        value: "-37.8136"
+      - key: RESTAURANT_LONGITUDE
+        value: "144.9631"
+
+      # Public holidays (Nager.Date).
+      - key: HOLIDAY_COUNTRY_CODE
+        value: AU
+      - key: HOLIDAY_SUBDIVISION
+        value: AU-VIC
+
+      # Local events (Ticketmaster Discovery API) -- fill in your own key,
+      # don't commit it.
+      - key: TICKETMASTER_API_KEY
+        sync: false
+      - key: TICKETMASTER_CITY
+        value: Melbourne
+      - key: TICKETMASTER_COUNTRY_CODE
+        value: AU
+
+      # The FastAPI service's /predict endpoint -- fill in after
+      # misecast-demand-api has deployed once and you have its URL,
+      # e.g. https://misecast-demand-api-xxxx.onrender.com/predict
+      - key: ML_API_URL
+        sync: false
