@@ -108,7 +108,7 @@ router.post("/menu", async (req, res) => {
         await existingMenu.save();
       } else {
         await Menu.create({
-          _id: row._id?.trim() || crypto.randomUUID(),
+          _id: crypto.randomUUID(),
 
           name: name,
 

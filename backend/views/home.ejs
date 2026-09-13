@@ -1,916 +1,141 @@
-<%- include("partials/header", { title: "Home" , pageTitle: "Home" }) %>
+<!DOCTYPE html>
+<html lang="en">
 
-  <style>
-    .sales-section {
-      margin-block: 2.5rem;
-    }
+<head>
+  <meta charset="UTF-8">
 
-    .sales-demo-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      border-radius: 999px;
-      padding: 0.4rem 0.65rem;
-      color: #75530b;
-      background: #fff0c7;
-      font-size: 0.68rem;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
 
-    .sales-period-switch {
-      display: inline-flex;
-      overflow: hidden;
-      border: 1px solid var(--mc-border);
-      border-radius: 0.7rem;
-      background: #f4f6f4;
-    }
+  <title>Restaurant Sales Predictor</title>
 
-    .sales-period-switch button {
-      border: 0;
-      padding: 0.55rem 0.85rem;
-      color: var(--mc-muted);
-      background: transparent;
-      font-size: 0.78rem;
-      font-weight: 700;
-    }
+  <!-- Bootstrap -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+</head>
 
-    .sales-period-switch button.active {
-      color: #fff;
-      background: var(--mc-ink);
-    }
+<body>
 
-    .sales-date-heading {
-      margin: 0;
-      color: var(--mc-ink);
-      font-size: clamp(1.85rem, 4vw, 3rem);
-      font-weight: 800;
-      letter-spacing: -0.055em;
-      line-height: 1;
-    }
+  <!-- Navigation -->
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container">
 
-    .sales-date-subtitle {
-      margin-top: 0.55rem;
-      color: var(--mc-muted);
-      font-size: 0.86rem;
-    }
+      <a
+        class="navbar-brand"
+        href="/"
+      >
+        Restaurant Sales Predictor
+      </a>
 
-    .sales-dashboard {
-      overflow: hidden;
-    }
+      <a
+        class="btn btn-light"
+        href="/prediction"
+      >
+        New Prediction
+      </a>
 
-    .sales-summary-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      border-bottom: 1px solid var(--mc-border);
-    }
+    </div>
+  </nav>
 
-    .sales-summary {
-      border-right: 1px solid var(--mc-border);
-      padding: 1.25rem 1.4rem;
-    }
 
-    .sales-summary:last-child {
-      border-right: 0;
-    }
+  <main class="container mt-5">
 
-    .sales-summary-label {
-      color: var(--mc-muted);
-      font-size: 0.75rem;
-      font-weight: 700;
-    }
+    <div class="mb-4">
 
-    .sales-summary-value {
-      margin-top: 0.35rem;
-      font-size: clamp(1.35rem, 2.5vw, 2rem);
-      font-weight: 800;
-      letter-spacing: -0.045em;
-    }
+      <h1>
+        Prediction History
+      </h1>
 
-    .sales-change {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.18rem;
-      margin-top: 0.4rem;
-      border-radius: 999px;
-      padding: 0.25rem 0.45rem;
-      color: #1c7651;
-      background: #e4f4eb;
-      font-size: 0.68rem;
-      font-weight: 750;
-    }
+      <p class="text-muted">
+        Previous restaurant sales prediction requests.
+      </p>
 
-    .sales-change.negative {
-      color: #a34444;
-      background: #f9e8e6;
-    }
-
-    .sales-chart-wrap {
-      padding: 1.2rem 1.4rem 1rem;
-    }
-
-    .sales-chart-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-bottom: 0.8rem;
-    }
-
-    .sales-range {
-      color: var(--mc-muted);
-      font-size: 0.72rem;
-      font-weight: 650;
-    }
-
-    .sales-chart-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.85rem;
-    }
-
-    .sales-legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      color: var(--mc-muted);
-      font-size: 0.7rem;
-      font-weight: 650;
-    }
-
-    .sales-legend-line {
-      width: 1.2rem;
-      border-top: 2px solid var(--mc-green);
-    }
-
-    .sales-legend-line.previous {
-      border-top-style: dashed;
-      border-top-color: #aeb8b2;
-    }
-
-    .sales-chart {
-      display: block;
-      width: 100%;
-      height: 15rem;
-      overflow: visible;
-    }
-
-    .sales-grid-line {
-      stroke: #e7ebe8;
-      stroke-width: 1;
-    }
-
-    .sales-current-line {
-      fill: none;
-      stroke: var(--mc-green);
-      stroke-width: 3;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .sales-previous-line {
-      fill: none;
-      stroke: #aeb8b2;
-      stroke-width: 2;
-      stroke-dasharray: 6 7;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .sales-point {
-      fill: #fff;
-      stroke: var(--mc-green);
-      stroke-width: 2;
-    }
-
-    .sales-axis-labels {
-      display: flex;
-      justify-content: space-between;
-      gap: 0.5rem;
-      margin-top: 0.2rem;
-      color: var(--mc-muted);
-      font-size: 0.67rem;
-    }
-
-    .sales-axis-labels span {
-      flex: 1 1 0;
-      min-width: 0;
-      text-align: center;
-      white-space: pre-line;
-    }
-
-    .sales-axis-labels span:first-child {
-      text-align: left;
-    }
-
-    .sales-axis-labels span:last-child {
-      text-align: right;
-    }
-
-    .sales-note {
-      color: var(--mc-muted);
-      font-size: 0.72rem;
-    }
-
-    .menu-revenue-layout {
-      display: grid;
-      grid-template-columns: minmax(15rem, 0.85fr) minmax(18rem, 1.15fr);
-      gap: 2rem;
-      align-items: center;
-      padding-block: 0.75rem;
-    }
-
-    .menu-revenue-chart-shell {
-      display: grid;
-      place-items: center;
-      min-height: 22rem;
-    }
-
-    .menu-revenue-chart {
-      position: relative;
-      display: grid;
-      width: min(100%, 20rem);
-      aspect-ratio: 1;
-      place-items: center;
-      border-radius: 50%;
-      background: #e4e9e6;
-      box-shadow: 0 20px 45px rgba(23, 35, 31, 0.12);
-      transition: background 250ms ease;
-    }
-
-    .menu-revenue-chart::after {
-      position: absolute;
-      width: 61%;
-      aspect-ratio: 1;
-      border: 1px solid var(--mc-border);
-      border-radius: 50%;
-      background: #fffdfa;
-      box-shadow: inset 0 3px 16px rgba(23, 35, 31, 0.05);
-      content: "";
-    }
-
-    .menu-revenue-center {
-      z-index: 1;
-      display: grid;
-      gap: 0.2rem;
-      text-align: center;
-    }
-
-    .menu-revenue-center span {
-      color: var(--mc-muted);
-      font-size: 0.72rem;
-      font-weight: 700;
-    }
-
-    .menu-revenue-center strong {
-      color: var(--mc-ink);
-      font-size: clamp(1.45rem, 3vw, 2.1rem);
-      letter-spacing: -0.045em;
-    }
-
-    .menu-revenue-ranking {
-      display: grid;
-      gap: 0.65rem;
-    }
-
-    .menu-revenue-row {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
-      gap: 0.7rem;
-      align-items: center;
-      border: 1px solid var(--mc-border);
-      border-radius: 0.8rem;
-      padding: 0.75rem 0.9rem;
-      background: #fff;
-    }
-
-    .menu-revenue-dot {
-      width: 0.72rem;
-      height: 0.72rem;
-      border-radius: 50%;
-    }
-
-    .menu-revenue-name {
-      overflow: hidden;
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .menu-revenue-value {
-      text-align: right;
-    }
-
-    .menu-revenue-value strong {
-      display: block;
-      font-size: 0.82rem;
-    }
-
-    .menu-revenue-value span {
-      color: var(--mc-muted);
-      font-size: 0.68rem;
-    }
-
-    .menu-revenue-other {
-      margin-top: 0.75rem;
-      border: 1px solid var(--mc-border);
-      border-radius: 0.8rem;
-      background: #f7f9f7;
-    }
-
-    .menu-revenue-other summary {
-      cursor: pointer;
-      padding: 0.8rem 0.9rem;
-      color: var(--mc-muted);
-      font-size: 0.76rem;
-      font-weight: 700;
-    }
-
-    .menu-revenue-other-list {
-      display: grid;
-      gap: 0.45rem;
-      border-top: 1px solid var(--mc-border);
-      padding: 0.75rem 0.9rem;
-    }
-
-    .menu-revenue-other-item {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      color: var(--mc-muted);
-      font-size: 0.72rem;
-    }
-
-    .sales-kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-
-    .sales-kpi-card {
-      min-height: 9.5rem;
-      border: 1px solid var(--mc-border);
-      border-radius: 1rem;
-      padding: 1.2rem 1.3rem;
-      background: #fff;
-      box-shadow: 0 10px 30px rgba(23, 35, 31, 0.04);
-    }
-
-    .sales-kpi-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      color: var(--mc-muted);
-      font-size: 0.78rem;
-      font-weight: 700;
-    }
-
-    .sales-kpi-value {
-      margin-top: 1.15rem;
-      color: var(--mc-ink);
-      font-size: clamp(1.55rem, 3vw, 2.25rem);
-      font-weight: 800;
-      letter-spacing: -0.045em;
-    }
-
-    .sales-kpi-caption {
-      margin-top: 0.45rem;
-      color: var(--mc-muted);
-      font-size: 0.72rem;
-    }
-
-    .sales-coming-soon {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      padding: 0.28rem 0.5rem;
-      color: #765d22;
-      background: #fff2cc;
-      font-size: 0.65rem;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    @media (max-width: 767.98px) {
-      .sales-summary-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .sales-summary {
-        border-right: 0;
-        border-bottom: 1px solid var(--mc-border);
-      }
-
-      .sales-summary:last-child {
-        border-bottom: 0;
-      }
-
-      .sales-chart {
-        height: 11rem;
-      }
-
-      .sales-kpi-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .sales-axis-labels {
-        font-size: 0.58rem;
-      }
-
-      .menu-revenue-layout {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-
-      .menu-revenue-chart-shell {
-        min-height: auto;
-        padding-block: 1rem;
-      }
-    }
-  </style>
-
-  <section aria-labelledby="welcome-heading">
-    <div class="mc-panel overflow-hidden position-relative p-4 p-md-5 mb-4"
-      style="background: linear-gradient(125deg, #fffdfa 0%, #edf6f1 70%, #f9efda 100%);">
-      <div class="row align-items-center g-4 position-relative">
-        <div class="col-lg-8 py-lg-3">
-          <p class="mc-eyebrow">Restaurant intelligence</p>
-          <h1 id="welcome-heading" class="display-4 fw-bold mc-page-title mb-3">
-            Make every service<br class="d-none d-md-block" /> easier to plan.
-          </h1>
-          <p class="lead mc-page-copy mb-4">
-            Bring menu data, reservations, weather and local events together
-            to anticipate demand and make smarter inventory decisions.
-          </p>
-          <div class="d-flex flex-wrap gap-2">
-            <a href="/menu" class="btn btn-dark">Explore menu</a>
-            <a href="/reservations" class="btn btn-outline-dark">View reservations</a>
-          </div>
-        </div>
-
-        <div class="col-lg-4">
-          <div class="p-4 rounded-4 text-white"
-            style="background: #17231f; box-shadow: 0 20px 40px rgba(23, 35, 31, 0.18);">
-            <div class="d-flex align-items-center justify-content-between mb-4">
-              <span class="small text-uppercase fw-bold" style="letter-spacing: .1em; color: #aac7ba;">Planning
-                pulse</span>
-              <span class="badge" style="color: #bce8d4; background: rgba(103, 198, 155, .14);">Ready</span>
-            </div>
-            <div class="d-flex gap-3 align-items-start mb-3">
-              <span class="mc-icon" aria-hidden="true">◷</span>
-              <div>
-                <div class="fw-semibold">Next service</div>
-                <div class="small" style="color: #aebbb5;">Check demand context before prep begins.</div>
-              </div>
-            </div>
-            <div class="d-flex gap-3 align-items-start">
-              <span class="mc-icon" aria-hidden="true">↗</span>
-              <div>
-                <div class="fw-semibold">Better forecasts</div>
-                <div class="small" style="color: #aebbb5;">Fresh data makes every recommendation sharper.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <section class="sales-section" aria-labelledby="sales-overview-heading">
-      <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
-        <div>
-          <h2 id="sales-today-date" class="sales-date-heading">Today</h2>
-          <p id="sales-date-range" class="sales-date-subtitle mb-3">Latest sales period</p>
-          <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-            <p class="mc-eyebrow mb-0">Sales tracking</p>
-            <span class="sales-demo-badge">Demo data</span>
-          </div>
-          <h3 id="sales-overview-heading" class="h3 fw-bold mc-page-title mb-1">Sales overview</h3>
-          <p class="text-secondary mb-0">A simple view of revenue and order performance.</p>
-        </div>
 
-        <div class="sales-period-switch" role="group" aria-label="Sales period">
-          <button type="button" class="active" data-sales-period="7" aria-pressed="true">7 days</button>
-          <button type="button" data-sales-period="30" aria-pressed="false">30 days</button>
-          <button type="button" data-sales-period="year" aria-pressed="false">1 year</button>
-        </div>
-      </div>
+    <!--
+      If there are no prediction requests yet,
+      display a simple message.
+    -->
+    <% if (requestHistory.length === 0) { %>
 
-      <div class="card sales-dashboard">
-        <div class="sales-summary-grid">
-          <div class="sales-summary">
-            <div class="sales-summary-label">Total sales</div>
-            <div id="sales-total" class="sales-summary-value">$0</div>
-            <span id="sales-change" class="sales-change">↗ 0%</span>
-          </div>
-          <div class="sales-summary">
-            <div class="sales-summary-label">Orders</div>
-            <div id="sales-orders" class="sales-summary-value">0</div>
-            <span id="orders-change" class="sales-change">↗ 0%</span>
-          </div>
-          <div class="sales-summary">
-            <div class="sales-summary-label">Average order value</div>
-            <div id="sales-average" class="sales-summary-value">$0</div>
-            <span id="average-change" class="sales-change">↗ 0%</span>
-          </div>
-        </div>
+      <div class="alert alert-info">
 
-        <div class="sales-chart-wrap">
-          <div class="sales-chart-header">
-            <div>
-              <h3 class="h5 fw-bold mb-1">Revenue contribution by menu</h3>
-              <div id="sales-chart-range" class="sales-range">Latest 7 days</div>
-            </div>
-            <span class="sales-demo-badge">Top 5 highlighted</span>
-          </div>
+        No predictions have been made yet.
 
-          <div class="menu-revenue-layout">
-            <div class="menu-revenue-chart-shell">
-              <div id="menu-revenue-chart" class="menu-revenue-chart" role="img"
-                aria-label="Dummy revenue contribution by menu item">
-                <div class="menu-revenue-center">
-                  <span>Total revenue</span>
-                  <strong id="menu-revenue-total">$0</strong>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <div id="menu-revenue-ranking" class="menu-revenue-ranking"></div>
-              <details class="menu-revenue-other">
-                <summary id="menu-revenue-other-summary">Other menu items</summary>
-                <div id="menu-revenue-other-list" class="menu-revenue-other-list"></div>
-              </details>
-            </div>
-          </div>
-
-          <p class="sales-note mb-0 mt-2">
-            Dummy revenue data for UI testing. This data source is ready to be replaced by the actual sales model later.
-          </p>
-        </div>
-      </div>
-
-      <div class="sales-kpi-grid" aria-label="Sales summary">
-        <article class="sales-kpi-card">
-          <div class="sales-kpi-top">
-            <span>Total revenue</span>
-            <span aria-hidden="true">•••</span>
-          </div>
-          <div id="dashboard-total-revenue" class="sales-kpi-value">$0</div>
-          <p id="dashboard-total-caption" class="sales-kpi-caption mb-0">For the selected period</p>
-        </article>
-
-        <article class="sales-kpi-card">
-          <div class="sales-kpi-top">
-            <span>Sales forecast</span>
-            <span aria-hidden="true">↗</span>
-          </div>
-          <div id="dashboard-sales-forecast" class="sales-kpi-value">$0</div>
-          <p id="dashboard-forecast-caption" class="sales-kpi-caption mb-0">Projected next 7 days</p>
-        </article>
-
-        <article class="sales-kpi-card">
-          <div class="sales-kpi-top">
-            <span>Amount saved</span>
-            <span class="sales-coming-soon">Coming soon</span>
-          </div>
-          <div class="sales-kpi-value">—</div>
-          <p class="sales-kpi-caption mb-0">Savings from smarter stock decisions will appear here.</p>
-        </article>
-      </div>
-    </section>
-
-    <div class="d-flex align-items-end justify-content-between gap-3 mb-3">
-      <div>
-        <p class="mc-eyebrow">Workspace</p>
-        <h2 class="h3 fw-bold mc-page-title mb-0">Start planning</h2>
-      </div>
-    </div>
-
-    <div class="row g-4">
-
-
-      <div class="col-md-6 col-xl-3">
-        <a href="/reservations" class="card h-100 text-decoration-none text-body">
-          <div class="card-body p-4">
-            <span class="mc-icon mb-4" aria-hidden="true">◫</span>
-            <h3 class="h5 fw-bold">Reservations</h3>
-            <p class="text-secondary mb-4">Capture upcoming covers by date and service period.</p>
-            <span class="fw-semibold text-success">Plan covers →</span>
-          </div>
+        <a href="/prediction">
+          Make the first prediction.
         </a>
+
       </div>
 
-      <div class="col-md-6 col-xl-3">
-        <a href="/weather" class="card h-100 text-decoration-none text-body">
-          <div class="card-body p-4">
-            <span class="mc-icon mb-4" aria-hidden="true">☀</span>
-            <h3 class="h5 fw-bold">Demand context</h3>
-            <p class="text-secondary mb-4">Use weather, holidays and events to prepare for demand shifts.</p>
-            <span class="fw-semibold text-success">Check context →</span>
-          </div>
-        </a>
-      </div>
+    <% } else { %>
 
-      <div class="col-md-6 col-xl-3">
-        <a href="/import" class="card h-100 text-decoration-none text-body">
-          <div class="card-body p-4">
-            <span class="mc-icon mb-4" aria-hidden="true">⇧</span>
-            <h3 class="h5 fw-bold">Data imports</h3>
-            <p class="text-secondary mb-4">Upload fresh CSV or JSON records and monitor processing.</p>
-            <span class="fw-semibold text-success">Import data →</span>
-          </div>
-        </a>
-      </div>
-    </div>
-  </section>
 
-  <script>
-    (() => {
-      const salesData = {
-        7: {
-          current: [2940, 3180, 3060, 3520, 3890, 4310, 4680],
-          previous: [2710, 2850, 3010, 3140, 3300, 3520, 3740],
-          orders: [67, 72, 69, 79, 86, 94, 102],
-          previousOrders: 511,
-          forecast: 27850,
-          note: "Simulated daily sales compared with the previous 7 days.",
-        },
-        30: {
-          current: [2680, 2760, 2890, 3010, 2940, 3120, 3260, 3190, 3410, 3520, 3460, 3650, 3780, 3890, 3810, 3970, 4120, 4050, 4280, 4410, 4350, 4520, 4680, 4590, 4810, 4940, 4870, 5060, 5230, 5410],
-          previous: [2510, 2580, 2670, 2740, 2710, 2810, 2890, 2950, 3020, 3090, 3060, 3160, 3230, 3290, 3260, 3360, 3440, 3510, 3480, 3590, 3670, 3740, 3710, 3820, 3890, 3970, 4030, 4110, 4180, 4260],
-          orders: [61, 63, 66, 68, 67, 71, 73, 72, 77, 79, 78, 82, 84, 87, 85, 89, 92, 91, 96, 99, 97, 101, 104, 103, 108, 111, 109, 114, 117, 121],
-          previousOrders: 2398,
-          forecast: 129600,
-          note: "Simulated daily sales compared with the previous 30 days.",
-        },
-        year: {
-          current: [78400, 81200, 84900, 88100, 92400, 95800, 101600, 107200, 110400, 116800, 121900, 128500],
-          previous: [72100, 74800, 77900, 80600, 84200, 87600, 92100, 96400, 99800, 103500, 108200, 112700],
-          orders: [1760, 1815, 1890, 1955, 2040, 2110, 2220, 2330, 2400, 2520, 2625, 2750],
-          previousOrders: 23280,
-          forecast: 1329000,
-          note: "Simulated monthly sales compared with the previous 12 months.",
-        },
-      };
+      <!-- Prediction history table -->
+      <table class="table table-bordered table-striped">
 
-      // Dummy values for now. Replace this array with actual model output later.
-      const menuNames = [
-        "Chicken Teriyaki Bowl",
-        "Wagyu Beef Bowl",
-        "Salmon Aburi Bowl",
-        "Sashimi Poke Bowl",
-        "Karaage Chicken Bowl",
-        "Tofu Bowl",
-        "Miso Falafel Bowl",
-        "Bone Broth soup",
-        "Yuzu tea",
-        "Hot Chocolate",
-        "Specialty Soda",
-        "Coconut water",
-        "Sparkling water",
-        "Miso soup",
-        "Still waterr",
-      ];
+        <thead>
 
-      const menuWeights = [17, 13, 11, 10, 9, 7, 6, 5, 5, 4, 4, 3, 3, 2, 1];
-      const topMenuColours = ["#8b43df", "#f2b72f", "#ef5c3d", "#49ace0", "#238866"];
+          <tr>
 
-      function buildMenuRevenue(totalRevenue) {
-        let assignedRevenue = 0;
+            <th>
+              Request ID
+            </th>
 
-        return menuNames.map((name, index) => {
-          const revenue = index === menuNames.length - 1
-            ? totalRevenue - assignedRevenue
-            : Math.round(totalRevenue * menuWeights[index] / 100);
+            <th>
+              Prediction ID
+            </th>
 
-          assignedRevenue += revenue;
-          return { name, revenue };
-        });
-      }
+            <th>
+              Date
+            </th>
 
-      const currency = new Intl.NumberFormat("en-AU", {
-        style: "currency",
-        currency: "AUD",
-        maximumFractionDigits: 0,
-      });
+          </tr>
 
-      const integer = new Intl.NumberFormat("en-AU");
-      const svgNamespace = "http://www.w3.org/2000/svg";
-      const today = new Date();
-      today.setHours(12, 0, 0, 0);
+        </thead>
 
-      const longDate = new Intl.DateTimeFormat("en-AU", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
 
-      const rangeDate = new Intl.DateTimeFormat("en-AU", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
+        <tbody>
 
-      const shortDate = new Intl.DateTimeFormat("en-AU", {
-        day: "numeric",
-        month: "short",
-      });
+          <% requestHistory.forEach(request => { %>
 
-      const dayDate = new Intl.DateTimeFormat("en-AU", {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-      });
+            <tr>
 
-      function total(values) {
-        return values.reduce((sum, value) => sum + value, 0);
-      }
+              <td>
+                <%= request._id %>
+              </td>
 
-      function percentageChange(current, previous) {
-        if (!previous) return 0;
-        return (current - previous) / previous * 100;
-      }
+              <td>
+                <%= request.prediction_id %>
+              </td>
 
-      function updateChange(element, value) {
-        const positive = value >= 0;
-        element.textContent = (positive ? "↗ " : "↘ ") + Math.abs(value).toFixed(1) + "%";
-        element.classList.toggle("negative", !positive);
-      }
+              <td>
+                <%= new Date(request.date).toLocaleDateString() %>
+              </td>
 
-      function chartPoints(values, minimum, maximum) {
-        const width = 800;
-        const top = 20;
-        const bottom = 210;
-        const range = Math.max(maximum - minimum, 1);
-        return values.map((value, index) => {
-          const x = values.length === 1 ? width / 2 : index / (values.length - 1) * width;
-          const y = bottom - (value - minimum) / range * (bottom - top);
-          return [x, y];
-        });
-      }
+            </tr>
 
-      function pointString(points) {
-        return points.map((point) => point[0].toFixed(1) + "," + point[1].toFixed(1)).join(" ");
-      }
+          <% }) %>
 
-      function dayOffset(offset) {
-        const date = new Date(today);
-        date.setDate(date.getDate() + offset);
-        return date;
-      }
+        </tbody>
 
-      function periodDetails(period) {
-        if (period === "year") {
-          const start = new Date(today.getFullYear(), today.getMonth() - 11, 1, 12);
-          return {
-            start,
-            end: today,
-            points: salesData.year.current.map((value, index) => index),
-            forecastCaption: "Projected next 12 months",
-          };
-        }
+      </table>
 
-        const days = Number(period);
-        const indexes = period === "7" ? [0, 1, 2, 3, 4, 5, 6] : [0, 5, 10, 15, 20, 25, 29];
-        return {
-          start: dayOffset(-(days - 1)),
-          end: today,
-          points: indexes,
-          forecastCaption: "Projected next " + days + " days",
-        };
-      }
+    <% } %>
 
-      function axisLabels(period, indexes) {
-        if (period === "year") {
-          return indexes.map((index) => {
-            const date = new Date(today.getFullYear(), today.getMonth() - (11 - index), 1, 12);
-            return date.toLocaleDateString("en-AU", { month: "short" });
-          });
-        }
+  </main>
 
-        const days = Number(period);
-        return indexes.map((index) => {
-          const date = dayOffset(-(days - 1) + index);
-          if (period === "7") {
-            const pieces = dayDate.formatToParts(date);
-            const weekday = pieces.find((piece) => piece.type === "weekday").value;
-            const dateText = pieces
-              .filter((piece) => piece.type === "day" || piece.type === "month")
-              .map((piece) => piece.value)
-              .join(" ");
-            return weekday + "\n" + dateText;
-          }
-          return shortDate.format(date);
-        });
-      }
 
-      function displayRange(start, end) {
-        return rangeDate.format(start) + " – " + rangeDate.format(end);
-      }
-
-      function render(period) {
-        const data = salesData[period];
-        const details = periodDetails(period);
-        const currentSales = total(data.current);
-        const previousSales = total(data.previous);
-        const currentOrders = total(data.orders);
-        const currentAverage = currentSales / currentOrders;
-        const previousAverage = previousSales / data.previousOrders;
-        const periodRange = displayRange(details.start, details.end);
-
-        document.getElementById("sales-total").textContent = currency.format(currentSales);
-        document.getElementById("sales-orders").textContent = integer.format(currentOrders);
-        document.getElementById("sales-average").textContent = currency.format(currentAverage);
-        updateChange(document.getElementById("sales-change"), percentageChange(currentSales, previousSales));
-        updateChange(document.getElementById("orders-change"), percentageChange(currentOrders, data.previousOrders));
-        updateChange(document.getElementById("average-change"), percentageChange(currentAverage, previousAverage));
-        document.getElementById("dashboard-total-revenue").textContent = currency.format(currentSales);
-        document.getElementById("dashboard-total-caption").textContent = periodRange + " · simulated";
-        document.getElementById("dashboard-sales-forecast").textContent = currency.format(data.forecast);
-        document.getElementById("dashboard-forecast-caption").textContent = details.forecastCaption + " · simulated";
-        document.getElementById("sales-date-range").textContent = "Showing " + periodRange;
-        document.getElementById("sales-chart-range").textContent = periodRange;
-
-        const revenueItems = buildMenuRevenue(currentSales)
-          .sort((first, second) => second.revenue - first.revenue);
-        const topItems = revenueItems.slice(0, 5);
-        const otherItems = revenueItems.slice(5);
-        const otherRevenue = total(otherItems.map((item) => item.revenue));
-        const chartItems = topItems.concat({ name: "Other menu items", revenue: otherRevenue });
-        let chartPosition = 0;
-        const chartColours = topMenuColours.concat("#dfe5df");
-        const chartSegments = chartItems.map((item, index) => {
-          const start = chartPosition;
-          chartPosition += item.revenue / currentSales * 360;
-          return `${chartColours[index]} ${start.toFixed(2)}deg ${chartPosition.toFixed(2)}deg`;
-        });
-
-        const chart = document.getElementById("menu-revenue-chart");
-        chart.style.background = `conic-gradient(from -90deg, ${chartSegments.join(", ")})`;
-        chart.setAttribute(
-          "aria-label",
-          `Revenue contribution by menu. Top contributor: ${topItems[0].name}, ${currency.format(topItems[0].revenue)}.`,
-        );
-        document.getElementById("menu-revenue-total").textContent = currency.format(currentSales);
-
-        const ranking = document.getElementById("menu-revenue-ranking");
-        ranking.replaceChildren();
-        topItems.forEach((item, index) => {
-          const row = document.createElement("div");
-          row.className = "menu-revenue-row";
-
-          const dot = document.createElement("span");
-          dot.className = "menu-revenue-dot";
-          dot.style.background = topMenuColours[index];
-
-          const name = document.createElement("span");
-          name.className = "menu-revenue-name";
-          name.textContent = `${index + 1}. ${item.name}`;
-
-          const value = document.createElement("span");
-          value.className = "menu-revenue-value";
-          value.innerHTML = `<strong>${currency.format(item.revenue)}</strong><span>${(item.revenue / currentSales * 100).toFixed(1)}%</span>`;
-
-          row.append(dot, name, value);
-          ranking.append(row);
-        });
-
-        document.getElementById("menu-revenue-other-summary").textContent =
-          `Other ${otherItems.length} menu items · ${currency.format(otherRevenue)}`;
-        const otherList = document.getElementById("menu-revenue-other-list");
-        otherList.replaceChildren();
-        otherItems.forEach((item) => {
-          const row = document.createElement("div");
-          row.className = "menu-revenue-other-item";
-          const name = document.createElement("span");
-          name.textContent = item.name;
-          const value = document.createElement("strong");
-          value.textContent = currency.format(item.revenue);
-          row.append(name, value);
-          otherList.append(row);
-        });
-      }
-
-      document.querySelectorAll("[data-sales-period]").forEach((button) => {
-        button.addEventListener("click", () => {
-          document.querySelectorAll("[data-sales-period]").forEach((candidate) => {
-            const active = candidate === button;
-            candidate.classList.toggle("active", active);
-            candidate.setAttribute("aria-pressed", String(active));
-          });
-          render(button.dataset.salesPeriod);
-        });
-      });
-
-      document.getElementById("sales-today-date").textContent = longDate.format(today);
-      render("7");
-    })();
+  <!-- Bootstrap JavaScript -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
   </script>
 
-  <%- include("partials/footer") %>
+</body>
+
+</html>

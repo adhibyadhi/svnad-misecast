@@ -10,6 +10,7 @@ import mongoose from "mongoose";
 import app from "./app.js";
 
 const PORT = process.env.PORT ?? 8080;
+const HOST = process.env.IP ?? "127.0.0.1";
 
 /**
  * Connect to MongoDB.
@@ -29,12 +30,11 @@ async function connectToDatabase() {
  */
 connectToDatabase()
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+    app.listen(PORT, HOST, () => {
+      console.log(`Server running on http://${HOST}:${PORT}`);
     });
   })
   .catch((error) => {
     console.error("Failed to connect to MongoDB:", error);
-
     process.exit(1);
   });
