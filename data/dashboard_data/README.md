@@ -31,6 +31,29 @@ Ingredient run-out prediction (Section 4.2) — when each ingredient's usable st
 | `run_out_date_p90` | string or `null` | Predicted run-out date under cautious/high demand |
 | `days_until_run_out_p90` | number or `null` | Same, as a day count |
 
+## `orders.json`
+
+Order recommendations (Section 4.3) — a classic reorder-point / order-up-to-level rule
+applied to the run-out predictions above, telling the manager what to order, by when,
+and roughly what it'll cost.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `ingredient_id` / `ingredient_name` | string | The ingredient to reorder |
+| `order_by_date` | string (`YYYY-MM-DD`) | Place the order by this date to avoid running below the safety-stock buffer |
+| `days_until_order_by` | number | Same, as a day count from the window's start |
+| `urgency` | string | `"Order now"` / `"Urgent"` (≤2 days) / `"Upcoming"` |
+| `recommended_order_quantity` | number | How much to order, already rounded up to whole packs |
+| `unit` | string | Unit for the quantity above (matches `ingredient_master.csv`) |
+| `order_packs` | number | Number of supplier packs that quantity comes from |
+| `estimated_cost_aud` | number | Pack cost × packs, plus delivery fee if under the free-delivery threshold |
+| `supplier_name` | string | Primary supplier for this ingredient |
+| `lead_time_days` | number | Days between placing the order and it arriving |
+
+Only ingredients projected to cross their reorder point within the forecast window appear
+here — an ingredient with comfortable stock for the whole window is simply absent, not
+listed with a `null`.
+
 ## Regenerating
 
 Run `task/notebook.ipynb` top to bottom. The export cell (end of the "Run Out Prediction" section) writes both files here, overwriting whatever was there before.
