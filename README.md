@@ -14,6 +14,8 @@ Four stages, each feeding the next:
 
 Validated against the required matching-weekday baseline: the forecast model beats it overall (WAPE 0.083 vs. 0.088) and in 6 of 7 menu categories on a 14-day holdout window — the one honest miss (Add-ons/Modifiers, a low-volume category) is disclosed rather than hidden.
 
+**Note:** `ml_pipeline/` is a second, independent data+model pipeline built against the simpler dashboard schema in `data.txt` (one row per date, fixed `menu_1..15`, single point prediction) — it does not replace or feed into the four stages above. See `ml_pipeline/README.md` for why the two are kept separate.
+
 ## Directories
 
 ```tree
@@ -27,6 +29,8 @@ svnad-misecast/
 │   └── order_optimization.py  # ingredient demand + order recommendation logic (Sections 4.2/4.3)
 ├── task/
 │   └── notebook.ipynb         # the full ML pipeline: feature engineering -> model -> forecast -> revenue -> run-out -> orders -> expiry
+├── ml_pipeline/                # separate, simpler dashboard pipeline matching data.txt's schema -- see its own README
+├── data.txt                    # DBML schema for ml_pipeline/ (ml_model_input, predicted_sales_from_ml, ...)
 └── backend/                   # Node.js/Express/MongoDB app -- the dashboard, imports, and (WIP) forecast display
     ├── app.js / server.js
     ├── config/ controllers/ middleware/ models/ routes/ services/ utils/ views/
