@@ -60,11 +60,12 @@ app.use("/import", importRoutes);
 
 app.use("/reservations", reservationRoutes);
 app.use("/menu", menuRoutes);
+app.use("/calendar", calendarRoutes);
+app.use("/weather", weatherRoutes);
 
 /**
  * Error handler must come after routes.
  */
 app.use(errorHandler);
-app.use("/calendar", calendarRoutes);
-app.use("/weather", weatherRoutes);
+
 export default app;
