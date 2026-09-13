@@ -32,6 +32,16 @@ wouldn't be silently swallowed).
 old single-file shape, kept only for a quick pipeline smoke test when
 real data isn't at hand -- not used for the real training run anymore.
 
+The rest of `data/` (`menu.csv`, `promotion.csv`, `weather.csv`,
+`events.csv`, `public_holiday.csv`, `daily_reservation.csv`,
+`daily_sales.csv`) are data.txt's individual source tables -- the ones
+`predict.py --sources-dir` reads to assemble a feature row from a date
+alone, the real dashboard path. `daily_sales.csv` itself isn't used by
+this pipeline (it's what `predicted_sales_from_ml.csv` was already
+built from); kept for reference. All of this is synthetic (deterministic,
+fixed-seed generated), covering 2024-01-01 through today -- there's no
+real restaurant behind it yet.
+
 ## Files
 
 | File | Purpose |
@@ -53,9 +63,14 @@ pip install -r ../requirements.txt   # pandas, scikit-learn, joblib, numpy alrea
 # 1. Train on the real data
 python train.py --features data/ML_model_input.csv --targets data/predicted_sales_from_ml.csv
 
-# 2. Predict for a date
+# 2. Predict for a date already in ML_model_input.csv
 python predict.py --model models/demand_model.joblib \
-    --data data/ML_model_input.csv --date 2026-09-13
+    --features data/ML_model_input.csv --date 2026-09-13
+
+# 2b. Or assemble the row from the individual source tables instead --
+#     the actual dashboard path (date in, context looked up, not typed in)
+python predict.py --model models/demand_model.joblib \
+    --features data/ML_model_input.csv --date 2026-09-13 --sources-dir data
 
 # 3. Retrain (e.g. after new daily_sales lands), with a promotion guard
 python retrain.py --features data/ML_model_input.csv --targets data/predicted_sales_from_ml.csv

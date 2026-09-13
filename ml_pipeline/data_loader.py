@@ -86,6 +86,13 @@ def collapse_duplicate_dates(df: pd.DataFrame) -> pd.DataFrame:
     return df.drop_duplicates(subset="date", keep="first").sort_values("date").reset_index(drop=True)
 
 
+def slot_menu_names(features_df: pd.DataFrame) -> dict[str, str]:
+    """menu_i holds that slot's real menu name (e.g. "Chicken Teriyaki
+    Bowl"), constant across every row -- read it from data rather than
+    assuming a naming convention like MENU_1..MENU_15."""
+    return {slot: str(features_df[slot].iloc[0]) for slot in MENU_SLOTS}
+
+
 def load_training_data(features_path: str, targets_path: str, features_sep: str | None = None, targets_sep: str | None = None) -> pd.DataFrame:
     """One row per date, features + target amounts joined, padding collapsed."""
     features = load_ml_model_input(features_path, features_sep)

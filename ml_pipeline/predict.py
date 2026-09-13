@@ -8,18 +8,27 @@ Two ways in:
 
 2. build_input_row(date, ...): assembles that row from the underlying
    source tables in data.txt (promotion, weather, events, public_holiday,
-   daily_reservation, menu) for a date that hasn't happened yet -- which is
-   the real dashboard case: the manager picks a future date, and the
-   context (forecast weather, confirmed reservations, planned promotions,
-   scheduled events/holidays) is looked up, not typed in by hand.
+   daily_reservation, menu) -- the real dashboard case: the manager picks a
+   date, and the context (weather, confirmed reservations, planned
+   promotions, scheduled events/holidays) is looked up, not typed in by
+   hand.
+
+   Caveat: this only works for a date that has rows in those source
+   tables. The delivered data covers 2024-01-01 through today -- for a
+   date past that (a real future prediction), avg_temp/rain/reservations/
+   promotions/events for that date don't exist yet and would need a live
+   feed (weather forecast API, the reservation system, etc.), which is
+   explicitly out of scope for this pipeline. Until that's wired up, demo
+   with a date inside the covered range.
 """
 
 import argparse
 import json
+from pathlib import Path
 
 import pandas as pd
 
-from data_loader import load_ml_model_input
+from data_loader import load_ml_model_input, slot_menu_names
 from features import build_features
 from model import DemandModel
 from schema import MENU_SLOTS
@@ -33,6 +42,7 @@ def predict_for_row(model: DemandModel, row: pd.Series) -> dict:
 
 def build_input_row(
     date: pd.Timestamp,
+    slot_names: dict,
     menu_df: pd.DataFrame,
     promotion_df: pd.DataFrame,
     weather_df: pd.DataFrame,
@@ -40,16 +50,16 @@ def build_input_row(
     public_holiday_df: pd.DataFrame,
     daily_reservation_df: pd.DataFrame,
 ) -> pd.Series:
-    """menu_df needs columns [name, price]; promotion_df needs
-    [menu_item, percentage_discount, date] and is filtered to `date`; the
-    rest are one row per date, as in data.txt."""
+    """slot_names maps menu_1..menu_15 -> the real menu name in that slot
+    (see data_loader.slot_menu_names). menu_df needs columns [name, price];
+    promotion_df needs [menu_item, percentage_discount, date] and is
+    filtered to `date`; the rest are one row per date, as in data.txt."""
     date = pd.Timestamp(date)
 
     discounts = promotion_df[promotion_df["date"] == date].set_index("menu_item")["percentage_discount"]
 
     row = {"date": date}
-    for i, slot in enumerate(MENU_SLOTS, start=1):
-        menu_name = f"MENU_{i}"
+    for slot, menu_name in slot_names.items():
         base_price = float(menu_df.loc[menu_df["name"] == menu_name, "price"].iloc[0])
         discount_pct = float(discounts.get(menu_name, 0))
         row[slot] = menu_name
@@ -71,14 +81,35 @@ def build_input_row(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="models/demand_model.joblib")
-    parser.add_argument("--data", required=True, help="ml_model_input CSV/JSON containing the date to predict")
-    parser.add_argument("--date", required=True, help="YYYY-MM-DD, must be a row in --data")
+    parser.add_argument("--features", default="data/ML_model_input.csv", help="ml_model_input CSV/JSON -- used to resolve menu slot names, and (without --sources-dir) as the row source")
+    parser.add_argument("--date", required=True, help="YYYY-MM-DD")
+    parser.add_argument(
+        "--sources-dir",
+        help="directory with menu.csv/promotion.csv/weather.csv/events.csv/public_holiday.csv/daily_reservation.csv -- "
+             "if given, the row is assembled from these (the real dashboard path) instead of looked up in --features",
+    )
     args = parser.parse_args()
 
     model = DemandModel.load(args.model)
-    df = load_ml_model_input(args.data)
-    row = df[df["date"] == pd.Timestamp(args.date)]
-    if row.empty:
-        raise SystemExit(f"no row for date {args.date} in {args.data}")
+    features = load_ml_model_input(args.features)
+    date = pd.Timestamp(args.date)
 
-    print(json.dumps(predict_for_row(model, row.iloc[0]), indent=2))
+    if args.sources_dir:
+        src = Path(args.sources_dir)
+        row = build_input_row(
+            date,
+            slot_menu_names(features),
+            menu_df=pd.read_csv(src / "menu.csv", sep=";"),
+            promotion_df=pd.read_csv(src / "promotion.csv", sep=";", parse_dates=["date"]),
+            weather_df=pd.read_csv(src / "weather.csv", sep=";", parse_dates=["date"]),
+            events_df=pd.read_csv(src / "events.csv", sep=";", parse_dates=["date"]),
+            public_holiday_df=pd.read_csv(src / "public_holiday.csv", sep=";", parse_dates=["date"]),
+            daily_reservation_df=pd.read_csv(src / "daily_reservation.csv", sep=";", parse_dates=["date"]),
+        )
+    else:
+        match = features[features["date"] == date]
+        if match.empty:
+            raise SystemExit(f"no row for date {args.date} in {args.features}")
+        row = match.iloc[0]
+
+    print(json.dumps(predict_for_row(model, row), indent=2))
