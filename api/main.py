@@ -17,7 +17,7 @@ from pathlib import Path
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, create_model
+from pydantic import BaseModel
 
 ML_PIPELINE_DIR = Path(__file__).resolve().parent.parent / "ml_pipeline"
 sys.path.insert(0, str(ML_PIPELINE_DIR))
@@ -33,19 +33,51 @@ MODELS_DIR = ML_PIPELINE_DIR / "models"
 DEFAULT_FEATURES_PATH = DATA_DIR / "ML_model_input.csv"
 DEFAULT_TARGETS_PATH = DATA_DIR / "predicted_sales_from_ml.csv"
 
-# Mirrors schema.ML_MODEL_INPUT_COLUMNS exactly, so the request body is
-# always in sync with what the model was actually trained on.
-_field_types = {"date": (str, ...)}
-for _slot in s.MENU_SLOTS:
-    _field_types[_slot] = (str, ...)
-    _field_types[f"{_slot}_price_after_discount"] = (float, ...)
-_field_types["total_reservation"] = (int, ...)
-_field_types["avg_temp"] = (float, ...)
-_field_types["rain"] = (bool, ...)
-_field_types["public_holiday"] = (bool, ...)
-_field_types["num_of_event"] = (int, ...)
+# Mirrors schema.ML_MODEL_INPUT_COLUMNS field-for-field -- the assertion
+# below fails loudly if the two ever drift apart instead of silently
+# accepting/rejecting the wrong fields.
+class PredictRequest(BaseModel):
+    date: str
+    menu_1: str
+    menu_1_price_after_discount: float
+    menu_2: str
+    menu_2_price_after_discount: float
+    menu_3: str
+    menu_3_price_after_discount: float
+    menu_4: str
+    menu_4_price_after_discount: float
+    menu_5: str
+    menu_5_price_after_discount: float
+    menu_6: str
+    menu_6_price_after_discount: float
+    menu_7: str
+    menu_7_price_after_discount: float
+    menu_8: str
+    menu_8_price_after_discount: float
+    menu_9: str
+    menu_9_price_after_discount: float
+    menu_10: str
+    menu_10_price_after_discount: float
+    menu_11: str
+    menu_11_price_after_discount: float
+    menu_12: str
+    menu_12_price_after_discount: float
+    menu_13: str
+    menu_13_price_after_discount: float
+    menu_14: str
+    menu_14_price_after_discount: float
+    menu_15: str
+    menu_15_price_after_discount: float
+    total_reservation: int
+    avg_temp: float
+    rain: bool
+    public_holiday: bool
+    num_of_event: int
 
-PredictRequest = create_model("PredictRequest", **_field_types)
+
+assert set(PredictRequest.model_fields) == set(s.ML_MODEL_INPUT_COLUMNS), (
+    "PredictRequest fields drifted from schema.ML_MODEL_INPUT_COLUMNS -- update one to match the other"
+)
 
 
 class PredictResponse(BaseModel):

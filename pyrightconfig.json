@@ -1,0 +1,4 @@
+{
+  "extraPaths": ["ml_pipeline"],
+  "exclude": [".svnad-venv", "backend/node_modules", "**/__pycache__"]
+}
