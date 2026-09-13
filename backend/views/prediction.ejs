@@ -1,144 +1,223 @@
 <%- include("partials/header", { title: "Prediction" }) %>
 
-<div class="page-card">
+  <div class="page-card">
 
-  <h1 class="mb-3">
-    Sales Prediction
-  </h1>
-
-  <p class="text-muted">
-    Select a future date range of up to 7 days.
-  </p>
-
-
-  <!--
-    Display validation errors.
-  -->
-  <% if (error) { %>
-
-    <div class="alert alert-danger">
-      <%= error %>
-    </div>
-
-  <% } %>
-
-
-  <!--
-    Display success message.
-  -->
-  <% if (success) { %>
-
-    <div class="alert alert-success">
-      <%= success %>
-    </div>
-
-  <% } %>
-
-
-  <!--
-    Prediction date form.
-  -->
-  <form action="/prediction" method="POST">
-
-    <div class="row">
-
-      <!-- Start Date -->
-      <div class="col-md-6 mb-3">
-
-        <label
-          for="startDate"
-          class="form-label"
-        >
-          Start Date
-        </label>
-
-        <input
-          type="date"
-          class="form-control"
-          id="startDate"
-          name="startDate"
-          min="<%= minimumDate %>"
-          max="<%= maximumDate %>"
-          value="<%= startDate || "" %>"
-          required
-        >
-
-      </div>
-
-
-      <!-- End Date -->
-      <div class="col-md-6 mb-3">
-
-        <label
-          for="endDate"
-          class="form-label"
-        >
-          End Date
-        </label>
-
-        <input
-          type="date"
-          class="form-control"
-          id="endDate"
-          name="endDate"
-          min="<%= minimumDate %>"
-          max="<%= maximumDate %>"
-          value="<%= endDate || "" %>"
-          required
-        >
-
-      </div>
-
-    </div>
-
+    <h1 class="mb-3">
+      Sales Prediction
+    </h1>
 
     <p class="text-muted">
-
-      Predictions are limited to 7 days
-      and must be within the available
-      weather forecast period.
-
+      Select a future date range of up to 7 days.
     </p>
 
 
-    <button
-      type="submit"
-      class="btn btn-primary"
-    >
-      Generate Prediction
-    </button>
+    <!--
+    Display validation errors.
+  -->
+    <% if (error) { %>
 
-  </form>
+      <div class="alert alert-danger">
+        <%= error %>
+      </div>
+
+      <% } %>
 
 
-  <!--
+        <!--
+    Display success message.
+  -->
+        <% if (success) { %>
+
+          <div class="alert alert-success">
+            <%= success %>
+          </div>
+
+          <% } %>
+
+
+            <!--
+    Prediction date form.
+  -->
+            <form action="/prediction" method="POST">
+
+              <div class="row">
+
+                <!-- Start Date -->
+                <div class="col-md-6 mb-3">
+
+                  <label for="startDate" class="form-label">
+                    Start Date
+                  </label>
+
+                  <input type="date" class="form-control" id="startDate" name="startDate" min="<%= minimumDate %>"
+                    max="<%= maximumDate %>" value="<%= startDate || "" %>" required>
+
+                </div>
+
+
+                <!-- End Date -->
+                <div class="col-md-6 mb-3">
+
+                  <label for="endDate" class="form-label">
+                    End Date
+                  </label>
+
+                  <input type="date" class="form-control" id="endDate" name="endDate" min="<%= minimumDate %>"
+                    max="<%= maximumDate %>" value="<%= endDate || "" %>" required>
+
+                </div>
+
+              </div>
+
+
+              <p class="text-muted">
+
+                Predictions are limited to 7 days
+                and must be within the available
+                weather forecast period.
+
+              </p>
+
+
+              <button type="submit" class="btn btn-primary">
+                Generate Prediction
+              </button>
+
+            </form>
+
+
+            <!--
     Display the dates that will eventually
     be sent to the ML model one day at a time.
   -->
-  <% if (dates && dates.length > 0) { %>
+            <% if (dates && dates.length> 0) { %>
 
-    <hr class="my-4">
+              <hr class="my-4">
 
-    <h4>
-      Prediction Dates
-    </h4>
+              <h4>
+                Prediction Dates
+              </h4>
 
-    <ul class="list-group mb-4">
+              <ul class="list-group mb-4">
 
-      <% dates.forEach(date => { %>
+                <% dates.forEach(date=> { %>
 
-        <li class="list-group-item">
-          <%= date %>
-        </li>
+                  <li class="list-group-item">
+                    <%= date %>
+                  </li>
 
-      <% }) %>
+                  <% }) %>
 
-    </ul>
+              </ul>
 
-  <% } %>
+              <% } %>
 
 
-  <!--
+                <!--
+    Show the total predicted amount per menu,
+    summed across the whole date range.
+  -->
+                <% if (rangeTotals && rangeTotals.length> 0) { %>
+
+                  <hr class="my-4">
+
+                  <h3 class="mb-3">
+                    Predicted Totals (<%= startDate %> to <%= endDate %>)
+                  </h3>
+
+                  <div class="table-responsive">
+
+                    <table class="table table-bordered table-striped table-sm">
+
+                      <thead>
+                        <tr>
+                          <th>Menu</th>
+                          <th>Total Predicted Amount</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        <% rangeTotals.forEach(total=> { %>
+                          <tr>
+                            <td>
+                              <%= total.menu %>
+                            </td>
+                            <td>
+                              <%= total.amount %>
+                            </td>
+                          </tr>
+                          <% }) %>
+                      </tbody>
+
+                    </table>
+
+                  </div>
+
+                  <% } %>
+
+
+                    <!--
+    Show the predicted amount per menu
+    for each individual day.
+  -->
+                    <% if (predictions && predictions.length> 0) { %>
+
+                      <hr class="my-4">
+
+                      <h3 class="mb-3">
+                        Daily Predictions
+                      </h3>
+
+                      <% predictions.forEach(result=> { %>
+
+                        <div class="card mb-4">
+
+                          <div class="card-header">
+                            <strong>
+                              <%= result.date %>
+                            </strong>
+                          </div>
+
+                          <div class="card-body">
+
+                            <div class="table-responsive">
+
+                              <table class="table table-bordered table-striped table-sm">
+
+                                <thead>
+                                  <tr>
+                                    <th>Menu</th>
+                                    <th>Predicted Amount</th>
+                                  </tr>
+                                </thead>
+
+                                <tbody>
+                                  <% for (let i=1; i <=15; i++) { %>
+                                    <tr>
+                                      <td>
+                                        <%= result.prediction[`menu_${i}`] %>
+                                      </td>
+                                      <td>
+                                        <%= result.prediction[`menu_${i}_amount`] %>
+                                      </td>
+                                    </tr>
+                                    <% } %>
+                                </tbody>
+
+                              </table>
+
+                            </div>
+
+                          </div>
+
+                        </div>
+
+                        <% }) %>
+
+                          <% } %>
+
+
+                            <!--
     Preview the ML inputs.
 
     These objects contain:
@@ -149,205 +228,205 @@
     - public holiday
     - event count
   -->
-  <% if (mlInputs && mlInputs.length > 0) { %>
+                            <% if (mlInputs && mlInputs.length> 0) { %>
 
-    <hr class="my-4">
+                              <hr class="my-4">
 
 
-    <h3 class="mb-3">
-      ML Input Preview
-    </h3>
+                              <h3 class="mb-3">
+                                ML Input Preview
+                              </h3>
 
 
-    <p class="text-muted">
-      One ML input object will be created for each day.
-    </p>
+                              <p class="text-muted">
+                                One ML input object will be created for each day.
+                              </p>
 
 
-    <% mlInputs.forEach(input => { %>
+                              <% mlInputs.forEach(input=> { %>
 
-      <div class="card mb-4">
+                                <div class="card mb-4">
 
-        <!-- Date -->
-        <div class="card-header">
+                                  <!-- Date -->
+                                  <div class="card-header">
 
-          <strong>
+                                    <strong>
 
-            <%= new Date(input.date).toISOString().slice(0, 10) %>
+                                      <%= new Date(input.date).toISOString().slice(0, 10) %>
 
-          </strong>
+                                    </strong>
 
-        </div>
+                                  </div>
 
 
-        <div class="card-body">
+                                  <div class="card-body">
 
-          <!-- Reservation -->
-          <p>
+                                    <!-- Reservation -->
+                                    <p>
 
-            <strong>
-              Total Reservations:
-            </strong>
+                                      <strong>
+                                        Total Reservations:
+                                      </strong>
 
-            <%= input.total_reservation %>
+                                      <%= input.total_reservation %>
 
-          </p>
+                                    </p>
 
 
-          <!-- External data -->
-          <div class="row mb-4">
+                                    <!-- External data -->
+                                    <div class="row mb-4">
 
-            <!-- Temperature -->
-            <div class="col-md-3 mb-3">
+                                      <!-- Temperature -->
+                                      <div class="col-md-3 mb-3">
 
-              <strong>
-                Average Temperature
-              </strong>
+                                        <strong>
+                                          Average Temperature
+                                        </strong>
 
-              <div>
-                <%= input.avg_temp %> °C
-              </div>
+                                        <div>
+                                          <%= input.avg_temp %> °C
+                                        </div>
 
-            </div>
+                                      </div>
 
 
-            <!-- Rain -->
-            <div class="col-md-3 mb-3">
+                                      <!-- Rain -->
+                                      <div class="col-md-3 mb-3">
 
-              <strong>
-                Rain
-              </strong>
+                                        <strong>
+                                          Rain
+                                        </strong>
 
-              <div>
+                                        <div>
 
-                <% if (input.rain) { %>
+                                          <% if (input.rain) { %>
 
-                  Yes
+                                            Yes
 
-                <% } else { %>
+                                            <% } else { %>
 
-                  No
+                                              No
 
-                <% } %>
+                                              <% } %>
 
-              </div>
+                                        </div>
 
-            </div>
+                                      </div>
 
 
-            <!-- Public Holiday -->
-            <div class="col-md-3 mb-3">
+                                      <!-- Public Holiday -->
+                                      <div class="col-md-3 mb-3">
 
-              <strong>
-                Public Holiday
-              </strong>
+                                        <strong>
+                                          Public Holiday
+                                        </strong>
 
-              <div>
+                                        <div>
 
-                <% if (input.public_holiday) { %>
+                                          <% if (input.public_holiday) { %>
 
-                  Yes
+                                            Yes
 
-                <% } else { %>
+                                            <% } else { %>
 
-                  No
+                                              No
 
-                <% } %>
+                                              <% } %>
 
-              </div>
+                                        </div>
 
-            </div>
+                                      </div>
 
 
-            <!-- Events -->
-            <div class="col-md-3 mb-3">
+                                      <!-- Events -->
+                                      <div class="col-md-3 mb-3">
 
-              <strong>
-                Events
-              </strong>
+                                        <strong>
+                                          Events
+                                        </strong>
 
-              <div>
-                <%= input.num_of_event %>
-              </div>
+                                        <div>
+                                          <%= input.num_of_event %>
+                                        </div>
 
-            </div>
+                                      </div>
 
-          </div>
+                                    </div>
 
 
-          <!-- Menu information -->
-          <h5>
-            Menu Input
-          </h5>
+                                    <!-- Menu information -->
+                                    <h5>
+                                      Menu Input
+                                    </h5>
 
 
-          <div class="table-responsive">
+                                    <div class="table-responsive">
 
-            <table class="table table-bordered table-striped table-sm">
+                                      <table class="table table-bordered table-striped table-sm">
 
-              <thead>
+                                        <thead>
 
-                <tr>
+                                          <tr>
 
-                  <th>
-                    Menu
-                  </th>
+                                            <th>
+                                              Menu
+                                            </th>
 
-                  <th>
-                    Price After Discount
-                  </th>
+                                            <th>
+                                              Price After Discount
+                                            </th>
 
-                </tr>
+                                          </tr>
 
-              </thead>
+                                        </thead>
 
 
-              <tbody>
+                                        <tbody>
 
-                <% for (let i = 1; i <= 15; i++) { %>
+                                          <% for (let i=1; i <=15; i++) { %>
 
-                  <tr>
+                                            <tr>
 
-                    <td>
+                                              <td>
 
-                      <%= input[`menu_${i}`] %>
+                                                <%= input[`menu_${i}`] %>
 
-                    </td>
+                                              </td>
 
 
-                    <td>
+                                              <td>
 
-                      $<%= input[`menu_${i}_price_after_discount`].toFixed(2) %>
+                                                $<%= input[`menu_${i}_price_after_discount`].toFixed(2) %>
 
-                    </td>
+                                              </td>
 
-                  </tr>
+                                            </tr>
 
-                <% } %>
+                                            <% } %>
 
-              </tbody>
+                                        </tbody>
 
-            </table>
+                                      </table>
 
-          </div>
+                                    </div>
 
 
-          <div class="alert alert-success mt-3">
+                                    <div class="alert alert-success mt-3">
 
-            ML input is complete and ready
-            to be sent to the prediction model.
+                                      ML input is complete and ready
+                                      to be sent to the prediction model.
 
-          </div>
+                                    </div>
 
-        </div>
+                                  </div>
 
-      </div>
+                                </div>
 
-    <% }) %>
+                                <% }) %>
 
-  <% } %>
+                                  <% } %>
 
-</div>
+  </div>
 
 
-<%- include("partials/footer") %>
+  <%- include("partials/footer") %>

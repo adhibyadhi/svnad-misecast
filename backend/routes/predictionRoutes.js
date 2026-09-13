@@ -21,7 +21,16 @@ import {
   createDateArray,
 } from "../utils/dateHelpers.js";
 
-import { buildMLInputForDate } from "../utils/predictionHelpers.js";
+import {
+  buildMLInputForDate,
+  buildPredictionDocument,
+} from "../utils/predictionHelpers.js";
+
+import { getSalesPrediction } from "../utils/mlApi.js";
+
+import MLModelInput from "../models/MLModelInput.js";
+import PredictedSales from "../models/PredictedSales.js";
+import RequestHistory from "../models/RequestHistory.js";
 
 const router = express.Router();
 
@@ -41,6 +50,10 @@ function renderPredictionPage(res, statusCode = 200, values = {}) {
     dates: values.dates ?? [],
 
     mlInputs: values.mlInputs ?? [],
+
+    predictions: values.predictions ?? [],
+
+    rangeTotals: values.rangeTotals ?? [],
 
     minimumDate: getMinimumPredictionDate(),
 
@@ -200,13 +213,163 @@ router.post("/", async (req, res) => {
     });
   }
 
-  return renderPredictionPage(res, 200, {
-    success: `Prepared ${numberOfDays} daily ML input(s).`,
-    startDate,
-    endDate,
-    dates,
-    mlInputs,
-  });
+  /*
+   * --------------------------------------------------
+   * CALL FASTAPI
+   * --------------------------------------------------
+   */
+  const predictions = [];
+  try {
+    /*
+     * FastAPI accepts one day at a time.
+     */
+    for (
+      const mlInput of mlInputs
+    ) {
+      /*
+       * Send real input to FastAPI.
+       */
+      const apiResult =
+        await getSalesPrediction(
+          mlInput
+        );
+      /*
+       * Validate and prepare
+       * prediction document.
+       */
+      const predictionData =
+        buildPredictionDocument(
+          mlInput,
+          apiResult
+        );
+      /*
+       * --------------------------------------------------
+       * SAVE ML INPUT
+       * --------------------------------------------------
+       */
+      const savedInput =
+        await MLModelInput.create(
+          mlInput
+        );
+      /*
+       * --------------------------------------------------
+       * SAVE ML OUTPUT
+       * --------------------------------------------------
+       */
+      const savedPrediction =
+        await PredictedSales.create(
+          predictionData
+        );
+      /*
+       * --------------------------------------------------
+       * SAVE REQUEST HISTORY
+       * --------------------------------------------------
+       *
+       * One request-history record is created
+       * for each daily prediction because the
+       * database design stores one prediction_id.
+       */
+      await RequestHistory.create({
+        prediction_id:
+          savedPrediction._id,
+        date:
+          savedInput.date,
+      });
+      /*
+       * Keep result temporarily for display.
+       */
+      predictions.push({
+        date:
+          formatDate(
+            mlInput.date
+          ),
+        input:
+          mlInput,
+        prediction:
+          savedPrediction.toObject(),
+      });
+    }
+  }
+  catch (error) {
+    console.error(
+      "FastAPI prediction failed:",
+      error
+    );
+    return renderPredictionPage(
+      res,
+      500,
+      {
+        error:
+          error.message,
+        startDate,
+        endDate,
+        dates,
+        mlInputs,
+      }
+    );
+  }
+  /*
+   * --------------------------------------------------
+   * CALCULATE TOTAL FOR FULL DATE RANGE
+   * --------------------------------------------------
+   *
+   * Example:
+   *
+   * Monday MENU_1 = 10
+   * Tuesday MENU_1 = 12
+   * Wednesday MENU_1 = 9
+   *
+   * Range total = 31
+   */
+  const rangeTotals = [];
+  for (
+    let i = 1;
+    i <= 15;
+    i++
+  ) {
+    const menuKey =
+      `menu_${i}`;
+    const amountKey =
+      `menu_${i}_amount`;
+    let totalAmount = 0;
+    for (
+      const result of predictions
+    ) {
+      totalAmount +=
+        result
+          .prediction[
+        amountKey
+        ];
+    }
+    rangeTotals.push({
+      menu:
+        mlInputs[0][
+        menuKey
+        ],
+      amount:
+        totalAmount,
+    });
+  }
+  /*
+   * --------------------------------------------------
+   * SHOW RESULT
+   * --------------------------------------------------
+   */
+  return renderPredictionPage(
+    res,
+    200,
+    {
+      success:
+        `Prediction completed for ${numberOfDays} day(s).`,
+      startDate,
+      endDate,
+      dates,
+      mlInputs,
+      predictions,
+      rangeTotals,
+    }
+  );
+
 });
 
 export default router;

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+
 import { MENU_NAMES, MENU_CATEGORIES } from "./menuValues.js";
 
 const menuSchema = new mongoose.Schema(
