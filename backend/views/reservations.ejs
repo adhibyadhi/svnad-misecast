@@ -1,0 +1,667 @@
+<%- include("partials/header", { title: "Reservations" }) %>
+
+<!--
+  Styles are scoped with the mc- prefix so they
+  cannot affect the rest of the site.
+
+  Font family is deliberately inherited from the
+  site stylesheet so this page matches the rest
+  of MiseCast automatically.
+-->
+<style>
+  .mc-reservations {
+    --mc-ink: #19231f;
+    --mc-green: #396d54;
+    --mc-green-dark: #2c5742;
+    --mc-green-soft: #eaf1ec;
+    --mc-gold: #d8b05e;
+    --mc-muted: #5f6b65;
+    --mc-line: rgba(25, 35, 31, 0.1);
+    --mc-radius: 24px;
+
+    color: var(--mc-ink);
+    padding-bottom: 80px;
+  }
+
+  /* Page heading */
+
+  .mc-reservations__eyebrow {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--mc-green);
+    margin-bottom: 14px;
+  }
+
+  .mc-reservations__title {
+    font-size: clamp(2.4rem, 4.4vw, 3.4rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.04;
+    margin-bottom: 18px;
+  }
+
+  .mc-reservations__lead {
+    font-size: 1.12rem;
+    line-height: 1.6;
+    color: var(--mc-muted);
+    max-width: 620px;
+    margin-bottom: 0;
+  }
+
+  /* Shared card shell */
+
+  .mc-card {
+    background-color: #ffffff;
+    border: 1px solid var(--mc-line);
+    border-radius: var(--mc-radius);
+    padding: 32px;
+  }
+
+  .mc-card--filters {
+    padding: 28px 32px;
+  }
+
+  /* Filter bar */
+
+  .mc-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mc-muted);
+    margin-bottom: 10px;
+  }
+
+  .mc-input {
+    width: 100%;
+    padding: 13px 16px;
+    font-size: 1rem;
+    font-family: inherit;
+    color: var(--mc-ink);
+    background-color: #fbfbf9;
+    border: 1px solid var(--mc-line);
+    border-radius: 12px;
+    outline: none;
+  }
+
+  .mc-input:focus {
+    border-color: var(--mc-green);
+    box-shadow: 0 0 0 3px rgba(57, 109, 84, 0.14);
+  }
+
+  .mc-button {
+    width: 100%;
+    padding: 13px 26px;
+    font-size: 1rem;
+    font-family: inherit;
+    font-weight: 700;
+    color: #ffffff;
+    background-color: var(--mc-green);
+    border: 1px solid var(--mc-green);
+    border-radius: 12px;
+    cursor: pointer;
+  }
+
+  .mc-button:hover {
+    background-color: var(--mc-green-dark);
+    border-color: var(--mc-green-dark);
+  }
+
+  .mc-range-note {
+    font-size: 0.95rem;
+    color: var(--mc-muted);
+    margin: 18px 0 0;
+  }
+
+  /* Summary statistics */
+
+  .mc-stat {
+    height: 100%;
+  }
+
+  .mc-stat__label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mc-muted);
+    margin-bottom: 14px;
+  }
+
+  .mc-stat__value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin: 0;
+  }
+
+  .mc-stat__unit {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--mc-muted);
+    margin-left: 4px;
+  }
+
+  .mc-stat--dark {
+    background-color: var(--mc-ink);
+    border-color: var(--mc-ink);
+    color: #ffffff;
+  }
+
+  .mc-stat--dark .mc-stat__label,
+  .mc-stat--dark .mc-stat__unit {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  /* Table */
+
+  .mc-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .mc-table th {
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mc-muted);
+    padding: 0 16px 16px;
+    border-bottom: 1px solid var(--mc-line);
+    white-space: nowrap;
+  }
+
+  .mc-table td {
+    padding: 20px 16px;
+    border-bottom: 1px solid var(--mc-line);
+    font-size: 1rem;
+    vertical-align: middle;
+  }
+
+  .mc-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .mc-table th:first-child,
+  .mc-table td:first-child {
+    padding-left: 0;
+  }
+
+  .mc-table th:last-child,
+  .mc-table td:last-child {
+    padding-right: 0;
+  }
+
+  .mc-numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+
+  .mc-day {
+    font-weight: 700;
+  }
+
+  .mc-date {
+    font-size: 0.9rem;
+    color: var(--mc-muted);
+  }
+
+  .mc-row--empty td {
+    color: rgba(95, 107, 101, 0.7);
+  }
+
+  .mc-row--empty .mc-day {
+    font-weight: 600;
+  }
+
+  /* Pills */
+
+  .mc-pill {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .mc-pill--busy {
+    background-color: var(--mc-ink);
+    color: #ffffff;
+  }
+
+  .mc-pill--moderate {
+    background-color: rgba(216, 176, 94, 0.22);
+    color: #7a5a14;
+  }
+
+  .mc-pill--quiet {
+    background-color: var(--mc-green-soft);
+    color: var(--mc-green-dark);
+  }
+
+  .mc-pill--none {
+    background-color: rgba(25, 35, 31, 0.06);
+    color: var(--mc-muted);
+  }
+
+  .mc-pill--today {
+    background-color: var(--mc-gold);
+    color: var(--mc-ink);
+    margin-left: 10px;
+    font-size: 0.7rem;
+    padding: 4px 10px;
+  }
+
+  /* Notices */
+
+  .mc-notice {
+    border-radius: 16px;
+    padding: 18px 22px;
+    font-size: 0.98rem;
+    line-height: 1.55;
+  }
+
+  .mc-notice--info {
+    background-color: var(--mc-green-soft);
+    color: var(--mc-green-dark);
+  }
+
+  .mc-notice--warning {
+    background-color: rgba(216, 176, 94, 0.18);
+    color: #7a5a14;
+  }
+
+  .mc-notice a {
+    color: inherit;
+    font-weight: 700;
+  }
+
+  .mc-footnote {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--mc-muted);
+    max-width: 640px;
+    margin: 24px 0 0;
+  }
+</style>
+
+
+<section class="mc-reservations">
+
+  <!-- Page heading -->
+  <header class="mb-5">
+
+    <p class="mc-reservations__eyebrow">
+      Service planning
+    </p>
+
+    <h1 class="mc-reservations__title">
+      Reservations, day by day.
+    </h1>
+
+    <p class="mc-reservations__lead">
+      Confirmed bookings and expected guests for each
+      of the next following days, so prep and ordering
+      can be planned before service.
+    </p>
+
+  </header>
+
+
+  <!--
+    Validation message.
+  -->
+  <% if (error) { %>
+
+    <div class="mc-notice mc-notice--warning mb-4">
+      <%= error %>
+    </div>
+
+  <% } %>
+
+
+  <!--
+    Choose the first day and how many
+    days should be listed.
+  -->
+  <div class="mc-card mc-card--filters mb-5">
+
+    <form
+      action="/reservations"
+      method="GET"
+    >
+
+      <div class="row g-4 align-items-end">
+
+        <!-- Start date -->
+        <div class="col-lg-5">
+
+          <label
+            class="mc-label"
+            for="startDate"
+          >
+            Start date
+          </label>
+
+          <input
+            class="mc-input"
+            type="date"
+            id="startDate"
+            name="startDate"
+            value="<%= startDate %>"
+          >
+
+        </div>
+
+
+        <!-- Number of days -->
+        <div class="col-lg-4">
+
+          <label
+            class="mc-label"
+            for="days"
+          >
+            Days shown
+          </label>
+
+          <select
+            class="mc-input"
+            id="days"
+            name="days"
+          >
+
+            <% numberOfDaysOptions.forEach(option => { %>
+
+              <option
+                value="<%= option %>"
+                <%= option === numberOfDays ? "selected" : "" %>
+              >
+                Next <%= option %> days
+              </option>
+
+            <% }) %>
+
+          </select>
+
+        </div>
+
+
+        <!-- Submit -->
+        <div class="col-lg-3">
+
+          <button
+            class="mc-button"
+            type="submit"
+          >
+            Show reservations
+          </button>
+
+        </div>
+
+      </div>
+
+    </form>
+
+
+    <p class="mc-range-note">
+      Showing <%= startDate %> to <%= endDate %>.
+    </p>
+
+  </div>
+
+
+  <!--
+    Range summary.
+  -->
+  <div class="row g-4 mb-5">
+
+    <div class="col-md-6 col-xl-3">
+
+      <div class="mc-card mc-stat">
+
+        <p class="mc-stat__label">
+          Total bookings
+        </p>
+
+        <p class="mc-stat__value">
+          <%= totals.totalReservation %>
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div class="col-md-6 col-xl-3">
+
+      <div class="mc-card mc-stat mc-stat--dark">
+
+        <p class="mc-stat__label">
+          Total guests
+        </p>
+
+        <p class="mc-stat__value">
+          <%= totals.totalPeople %>
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div class="col-md-6 col-xl-3">
+
+      <div class="mc-card mc-stat">
+
+        <p class="mc-stat__label">
+          Days with bookings
+        </p>
+
+        <p class="mc-stat__value">
+
+          <%= totals.daysWithReservations %>
+
+          <span class="mc-stat__unit">
+            of <%= numberOfDays %>
+          </span>
+
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div class="col-md-6 col-xl-3">
+
+      <div class="mc-card mc-stat">
+
+        <p class="mc-stat__label">
+          Average guests per booked day
+        </p>
+
+        <p class="mc-stat__value">
+          <%= totals.averagePeoplePerDay %>
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!--
+    If the whole range has no records,
+    explain why the table is empty.
+  -->
+  <% if (totals.daysWithReservations === 0) { %>
+
+    <div class="mc-notice mc-notice--info mb-4">
+
+      No reservation records were found between
+      <%= startDate %> and <%= endDate %>.
+      Import daily_reservation.csv from the
+
+      <a href="/import">
+        imports page
+      </a>
+
+      or choose a start date covered by the data
+      already loaded.
+
+    </div>
+
+  <% } %>
+
+
+  <!--
+    One row for each day in the range.
+  -->
+  <div class="mc-card">
+
+    <div class="table-responsive">
+
+      <table class="mc-table">
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Day
+            </th>
+
+            <th class="mc-numeric">
+              Bookings
+            </th>
+
+            <th class="mc-numeric">
+              Guests
+            </th>
+
+            <th class="mc-numeric">
+              Average party
+            </th>
+
+            <th>
+              Demand
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <% days.forEach(day => { %>
+
+            <tr class="<%= day.totalReservation === 0 ? "mc-row--empty" : "" %>">
+
+              <td>
+
+                <div class="mc-day">
+
+                  <%= day.weekday %>
+
+                  <% if (day.isToday) { %>
+
+                    <span class="mc-pill mc-pill--today">
+                      Today
+                    </span>
+
+                  <% } %>
+
+                </div>
+
+                <div class="mc-date">
+                  <%= day.date %>
+                </div>
+
+              </td>
+
+
+              <td class="mc-numeric">
+                <%= day.totalReservation %>
+              </td>
+
+
+              <td class="mc-numeric">
+                <%= day.totalPeople %>
+              </td>
+
+
+              <td class="mc-numeric">
+
+                <% if (day.totalReservation > 0) { %>
+
+                  <%= day.averagePartySize %>
+
+                <% } else { %>
+
+                  &mdash;
+
+                <% } %>
+
+              </td>
+
+
+              <td>
+
+                <% if (day.busynessLevel === "high") { %>
+
+                  <span class="mc-pill mc-pill--busy">
+                    Busy
+                  </span>
+
+                <% } else if (day.busynessLevel === "medium") { %>
+
+                  <span class="mc-pill mc-pill--moderate">
+                    Moderate
+                  </span>
+
+                <% } else if (day.busynessLevel === "low") { %>
+
+                  <span class="mc-pill mc-pill--quiet">
+                    Quiet
+                  </span>
+
+                <% } else { %>
+
+                  <span class="mc-pill mc-pill--none">
+                    No bookings
+                  </span>
+
+                <% } %>
+
+              </td>
+
+            </tr>
+
+          <% }) %>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <p class="mc-footnote">
+
+    Demand labels compare each day with the busiest
+    day in the selected range. They read confirmed
+    bookings only and do not include walk-in customers.
+
+  </p>
+
+</section>

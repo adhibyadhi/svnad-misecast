@@ -1,0 +1,90 @@
+<%- include("../partials/header") %>
+
+<header class="mc-page-header d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
+  <div>
+    <p class="mc-eyebrow">Demand context</p>
+    <h1 class="display-6 fw-bold mc-page-title mb-2">Melbourne weather</h1>
+    <p class="mc-page-copy mb-1">Daily forecasts in Melbourne local time for smarter service planning.</p>
+    <p class="small text-secondary mb-0">Forecast coordinates: <span class="mc-code"><%= coordinates %></span></p>
+  </div>
+  <form action="/weather/refresh" method="post">
+    <button class="btn btn-dark" type="submit">↻ Refresh weather</button>
+  </form>
+</header>
+
+<% if (errorMessage) { %>
+  <div class="alert alert-danger mb-4" role="alert"><%= errorMessage %></div>
+<% } %>
+
+<div class="mc-soft-panel p-3 p-md-4 mb-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+  <div>
+    <div class="small text-secondary mb-1">Last successful retrieval</div>
+    <div class="fw-semibold"><%= retrievedLabel || "No saved retrieval" %></div>
+  </div>
+  <% if (retrievedLabel) { %>
+    <span class="badge <%= stale ? 'text-bg-warning' : 'text-bg-success' %>">
+      <%= stale ? "Refresh needed" : "Forecast up to date" %>
+    </span>
+  <% } else { %>
+    <span class="badge text-bg-secondary">Not available</span>
+  <% } %>
+</div>
+
+<% if (rows.length === 0) { %>
+  <div class="card">
+    <div class="card-body p-5 text-center">
+      <span class="mc-icon mb-3" aria-hidden="true">☀</span>
+      <h2 class="h5 fw-bold">No upcoming forecast saved</h2>
+      <p class="text-secondary mb-0">Select Refresh weather to retrieve the latest forecast.</p>
+    </div>
+  </div>
+<% } else { %>
+  <section class="card overflow-hidden" aria-labelledby="forecast-heading">
+    <div class="card-header px-4 py-3 d-flex justify-content-between align-items-center gap-3">
+      <div>
+        <h2 id="forecast-heading" class="h5 fw-bold mb-1">Upcoming forecast</h2>
+        <p class="small text-secondary mb-0"><%= rows.length %>-day planning outlook</p>
+      </div>
+      <span class="mc-icon" aria-hidden="true">☀</span>
+    </div>
+    <div class="table-responsive border-0 rounded-0">
+      <table class="table table-striped align-middle mb-0">
+        <caption class="visually-hidden">Daily weather forecasts for the configured Melbourne location</caption>
+        <thead>
+          <tr>
+            <th scope="col">Date</th><th scope="col">Condition</th><th scope="col" class="text-end">Min °C</th>
+            <th scope="col" class="text-end">Max °C</th><th scope="col" class="text-end">Mean °C</th>
+            <th scope="col" class="text-end">Rain chance</th><th scope="col" class="text-end">Rainfall</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const row of rows) { %>
+            <tr>
+              <th scope="row" class="text-nowrap"><%= row.date %></th>
+              <td><span class="badge text-bg-secondary"><%= row.condition ?? "Unavailable" %></span></td>
+              <td class="text-end"><%= row.minimum_temperature_c ?? "—" %></td>
+              <td class="text-end fw-bold"><%= row.maximum_temperature_c ?? "—" %></td>
+              <td class="text-end"><%= row.average_temperature_c ?? "—" %></td>
+              <td class="text-end"><%= row.rain_probability_pct != null ? row.rain_probability_pct + "%" : "—" %></td>
+              <td class="text-end"><%= row.rainfall_mm != null ? row.rainfall_mm + " mm" : "—" %></td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+<% } %>
+
+<div class="row g-3 mt-2">
+  <div class="col-lg-8">
+    <p class="small text-secondary mb-0">
+      Successful forecasts are saved between refreshes. A refresh reuses data retrieved
+      within the last three hours on the same day. Forecasts are predictions, not observations.
+    </p>
+  </div>
+  <div class="col-lg-4 text-lg-end">
+    <p class="small mb-0">Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>.</p>
+  </div>
+</div>
+
+<%- include("../partials/footer") %>

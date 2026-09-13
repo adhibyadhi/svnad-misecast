@@ -9,7 +9,7 @@
 import mongoose from "mongoose";
 import app from "./app.js";
 
-const PORT = process.env.PORT ?? 8080;
+const PORT = process.env.PORT ?? 8084;
 const HOST = process.env.IP ?? "127.0.0.1";
 
 /**

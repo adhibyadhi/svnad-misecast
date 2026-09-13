@@ -1,0 +1,737 @@
+<%- include("partials/header", { title: "Weather" }) %>
+
+<!--
+  Styles are scoped with the mc- prefix so they
+  cannot affect the rest of the site.
+-->
+<style>
+  .mc-weather {
+    --mc-ink: #19231f;
+    --mc-green: #396d54;
+    --mc-green-dark: #2c5742;
+    --mc-green-soft: #eaf1ec;
+    --mc-gold: #d8b05e;
+    --mc-gold-soft: rgba(216, 176, 94, 0.2);
+    --mc-sky: #35618b;
+    --mc-sky-soft: #e7eff7;
+    --mc-muted: #5f6b65;
+    --mc-line: rgba(25, 35, 31, 0.1);
+    --mc-radius: 24px;
+
+    color: var(--mc-ink);
+    padding-bottom: 80px;
+  }
+
+  /* Page heading */
+
+  .mc-page-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+
+    margin-bottom: 36px;
+  }
+
+  .mc-flag {
+    display: inline-block;
+    padding: 8px 18px;
+    margin-bottom: 18px;
+
+    border-radius: 999px;
+    background-color: var(--mc-gold-soft);
+    color: #7a5a14;
+
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .mc-eyebrow {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--mc-green);
+    margin-bottom: 14px;
+  }
+
+  .mc-title {
+    font-size: clamp(2.4rem, 4.4vw, 3.4rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.04;
+    margin: 0 0 14px;
+  }
+
+  .mc-lead {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--mc-muted);
+    max-width: 580px;
+    margin: 0;
+  }
+
+  /* Range switch */
+
+  .mc-range {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .mc-range__link {
+    padding: 11px 18px;
+
+    border: 1px solid var(--mc-line);
+    border-radius: 12px;
+    background-color: #ffffff;
+
+    color: var(--mc-muted);
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .mc-range__link:hover {
+    color: var(--mc-green-dark);
+    background-color: var(--mc-green-soft);
+  }
+
+  .mc-range__link.is-active {
+    background-color: var(--mc-green);
+    border-color: var(--mc-green);
+    color: #ffffff;
+  }
+
+  /* Notices */
+
+  .mc-notice {
+    border-radius: 16px;
+    padding: 18px 22px;
+    margin-bottom: 28px;
+
+    font-size: 0.98rem;
+    line-height: 1.55;
+  }
+
+  .mc-notice--warning {
+    background-color: var(--mc-gold-soft);
+    color: #7a5a14;
+  }
+
+  .mc-notice--error {
+    background-color: rgba(176, 60, 47, 0.12);
+    color: #8d2f24;
+  }
+
+  /* Cards */
+
+  .mc-card {
+    background-color: #ffffff;
+    border: 1px solid var(--mc-line);
+    border-radius: var(--mc-radius);
+    padding: 26px;
+    height: 100%;
+  }
+
+  .mc-stat__label {
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mc-muted);
+    margin-bottom: 12px;
+  }
+
+  .mc-stat__value {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin: 0;
+  }
+
+  .mc-stat__value--small {
+    font-size: 1.4rem;
+  }
+
+  .mc-card--flush {
+    padding: 0;
+  }
+
+  .mc-stat__note {
+    font-size: 0.9rem;
+    color: var(--mc-muted);
+    margin: 8px 0 0;
+  }
+
+  .mc-card--dark {
+    background-color: var(--mc-ink);
+    border-color: var(--mc-ink);
+    color: #ffffff;
+  }
+
+  .mc-card--dark .mc-stat__label,
+  .mc-card--dark .mc-stat__note {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  /* Forecast day */
+
+  .mc-day {
+    display: grid;
+    grid-template-columns: 150px 190px minmax(0, 1fr);
+    gap: 28px;
+    align-items: center;
+
+    padding: 22px 26px;
+    border-bottom: 1px solid var(--mc-line);
+  }
+
+  .mc-day:last-child {
+    border-bottom: none;
+  }
+
+  @media (max-width: 991px) {
+    .mc-day {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+    }
+  }
+
+  .mc-day__date {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .mc-day__number {
+    font-size: 1.9rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .mc-day__month {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mc-muted);
+  }
+
+  .mc-day__weekday {
+    font-size: 0.95rem;
+    color: var(--mc-muted);
+    margin: 6px 0 0;
+  }
+
+  .mc-badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 12px;
+    border-radius: 999px;
+
+    background-color: var(--mc-green-soft);
+    color: var(--mc-green-dark);
+
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  /* Weather block */
+
+  .mc-temp {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .mc-condition {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 6px 14px;
+    border-radius: 999px;
+
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .mc-condition--hot {
+    background-color: rgba(197, 94, 46, 0.16);
+    color: #9c4a21;
+  }
+
+  .mc-condition--mild {
+    background-color: var(--mc-green-soft);
+    color: var(--mc-green-dark);
+  }
+
+  .mc-condition--cold {
+    background-color: var(--mc-sky-soft);
+    color: var(--mc-sky);
+  }
+
+  .mc-condition--wet {
+    background-color: var(--mc-sky-soft);
+    color: var(--mc-sky);
+  }
+
+  .mc-condition--plain {
+    background-color: rgba(25, 35, 31, 0.06);
+    color: var(--mc-muted);
+  }
+
+  .mc-day__portions {
+    font-size: 0.9rem;
+    color: var(--mc-muted);
+    margin: 10px 0 0;
+  }
+
+  /* Predicted demand */
+
+  .mc-demand__label {
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mc-muted);
+    margin-bottom: 12px;
+  }
+
+  .mc-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 5px 0;
+  }
+
+  .mc-item__rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+
+    border-radius: 999px;
+    background-color: rgba(25, 35, 31, 0.07);
+
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+  .mc-item--lead .mc-item__rank {
+    background-color: var(--mc-green);
+    color: #ffffff;
+  }
+
+  .mc-item__name {
+    width: 200px;
+    flex-shrink: 0;
+
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mc-item__bar {
+    flex: 1;
+    height: 10px;
+    min-width: 60px;
+
+    border-radius: 999px;
+    background-color: rgba(25, 35, 31, 0.07);
+    overflow: hidden;
+  }
+
+  .mc-item__fill {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background-color: rgba(57, 109, 84, 0.45);
+  }
+
+  .mc-item--lead .mc-item__fill {
+    background-color: var(--mc-green);
+  }
+
+  .mc-item__amount {
+    width: 54px;
+    flex-shrink: 0;
+    text-align: right;
+
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mc-footnote {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--mc-muted);
+    max-width: 660px;
+    margin: 24px 0 0;
+  }
+</style>
+
+
+<section class="mc-weather">
+
+  <!-- Page heading -->
+  <div class="mc-page-head">
+
+    <div>
+
+      <% if (simulated) { %>
+
+        <span class="mc-flag">
+          Simulation mode
+        </span>
+
+      <% } %>
+
+      <p class="mc-eyebrow">
+        Forecast outlook
+      </p>
+
+      <h1 class="mc-title">
+        Weather and demand.
+      </h1>
+
+      <p class="mc-lead">
+        The forecast for the days ahead, and the menu
+        items predicted to sell hardest on each of them.
+      </p>
+
+    </div>
+
+
+    <div class="mc-range">
+
+      <% numberOfDaysOptions.forEach(option => { %>
+
+        <a
+          class="mc-range__link <%= option === numberOfDays ? "is-active" : "" %>"
+          href="/weather?days=<%= option %>"
+        >
+          <%= option %> days
+        </a>
+
+      <% }) %>
+
+    </div>
+
+  </div>
+
+
+  <% if (error) { %>
+
+    <div class="mc-notice mc-notice--error">
+      <%= error %>
+    </div>
+
+  <% } %>
+
+
+  <% if (warning) { %>
+
+    <div class="mc-notice mc-notice--warning">
+      <%= warning %>
+    </div>
+
+  <% } %>
+
+
+  <% if (totals) { %>
+
+    <!-- Summary -->
+    <div class="row g-4 mb-5">
+
+      <div class="col-md-6 col-xl-3">
+
+        <div class="mc-card">
+
+          <p class="mc-stat__label">
+            Average temperature
+          </p>
+
+          <p class="mc-stat__value">
+
+            <% if (totals.averageTemperature) { %>
+
+              <%= totals.averageTemperature %>&deg;C
+
+            <% } else { %>
+
+              &mdash;
+
+            <% } %>
+
+          </p>
+
+          <p class="mc-stat__note">
+            <%= rangeLabel %>
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="col-md-6 col-xl-3">
+
+        <div class="mc-card">
+
+          <p class="mc-stat__label">
+            Days with rain
+          </p>
+
+          <p class="mc-stat__value">
+            <%= totals.rainDays %> of <%= numberOfDays %>
+          </p>
+
+          <% if (totals.warmestDay) { %>
+
+            <p class="mc-stat__note">
+              Warmest: <%= totals.warmestDay.weekday %>
+            </p>
+
+          <% } %>
+
+        </div>
+
+      </div>
+
+
+      <div class="col-md-6 col-xl-3">
+
+        <div class="mc-card mc-card--dark">
+
+          <p class="mc-stat__label">
+            Highest demand day
+          </p>
+
+          <p class="mc-stat__value">
+
+            <% if (totals.busiestDay) { %>
+
+              <%= totals.busiestDay.weekday %>
+
+            <% } else { %>
+
+              &mdash;
+
+            <% } %>
+
+          </p>
+
+          <% if (totals.busiestDay) { %>
+
+            <p class="mc-stat__note">
+              <%= totals.busiestDay.portions %> portions predicted
+            </p>
+
+          <% } %>
+
+        </div>
+
+      </div>
+
+
+      <div class="col-md-6 col-xl-3">
+
+        <div class="mc-card">
+
+          <p class="mc-stat__label">
+            Leading menu item
+          </p>
+
+          <p class="mc-stat__value mc-stat__value--small">
+
+            <% if (totals.topItemName) { %>
+
+              <%= totals.topItemName %>
+
+            <% } else { %>
+
+              &mdash;
+
+            <% } %>
+
+          </p>
+
+          <% if (totals.topItemName) { %>
+
+            <p class="mc-stat__note">
+              Top item on <%= totals.topItemDays %> of
+              <%= numberOfDays %> days
+            </p>
+
+          <% } %>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  <% } %>
+
+
+  <!-- Day by day -->
+  <% if (days.length > 0) { %>
+
+    <div class="mc-card mc-card--flush">
+
+      <% days.forEach(day => { %>
+
+        <div class="mc-day">
+
+          <!-- Date -->
+          <div>
+
+            <div class="mc-day__date">
+
+              <span class="mc-day__number">
+                <%= day.dayNumber %>
+              </span>
+
+              <span class="mc-day__month">
+                <%= day.monthLabel %>
+              </span>
+
+            </div>
+
+            <p class="mc-day__weekday">
+              <%= day.weekday %>
+            </p>
+
+            <% if (day.badge) { %>
+
+              <span class="mc-badge">
+                <%= day.badge %>
+              </span>
+
+            <% } %>
+
+          </div>
+
+
+          <!-- Forecast -->
+          <div>
+
+            <span class="mc-temp">
+
+              <% if (day.temperature !== null) { %>
+
+                <%= day.temperature.toFixed(1) %>&deg;C
+
+              <% } else { %>
+
+                &mdash;
+
+              <% } %>
+
+            </span>
+
+            <div>
+
+              <span class="mc-condition mc-condition--<%= day.conditionTone %>">
+                <%= day.conditionLabel %>
+              </span>
+
+            </div>
+
+            <p class="mc-day__portions">
+              <%= day.portions %> portions predicted
+            </p>
+
+          </div>
+
+
+          <!-- Predicted demand -->
+          <div>
+
+            <p class="mc-demand__label">
+              Most likely demand
+            </p>
+
+            <% if (day.topItems.length === 0) { %>
+
+              <p class="mc-day__portions">
+                No demand predicted.
+              </p>
+
+            <% } %>
+
+            <% day.topItems.forEach(item => { %>
+
+              <div class="mc-item <%= item.rank === 1 ? "mc-item--lead" : "" %>">
+
+                <span class="mc-item__rank">
+                  <%= item.rank %>
+                </span>
+
+                <span class="mc-item__name">
+                  <%= item.name %>
+                </span>
+
+                <span class="mc-item__bar">
+                  <span
+                    class="mc-item__fill"
+                    data-fill="<%= Math.min(100, item.sharePct * 3) %>"
+                  ></span>
+                </span>
+
+                <span class="mc-item__amount">
+                  <%= item.amount %>
+                </span>
+
+              </div>
+
+            <% }) %>
+
+          </div>
+
+        </div>
+
+      <% }) %>
+
+    </div>
+
+
+    <p class="mc-footnote">
+
+      Forecast values come from the weather API for the
+      restaurant location. Demand figures come from the
+      prediction model and share its accuracy, so treat
+      them as guidance for prep rather than a commitment.
+
+    </p>
+
+
+    <!--
+      Size each demand bar.
+
+      The width is applied here rather than in a style
+      attribute so the markup stays valid CSS for editors.
+    -->
+    <script>
+      (function () {
+        const fills = document.querySelectorAll(".mc-item__fill");
+
+        fills.forEach(function (fill) {
+          fill.style.width = fill.getAttribute("data-fill") + "%";
+        });
+      })();
+    </script>
+
+  <% } %>
+
+</section>

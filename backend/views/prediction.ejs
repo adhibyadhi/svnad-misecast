@@ -1,353 +1,1523 @@
 <%- include("partials/header", { title: "Prediction" }) %>
 
-<div class="page-card">
+<!--
+  Styles are scoped with the mc- prefix so they
+  cannot affect the rest of the site.
+-->
 
-  <h1 class="mb-3">
-    Sales Prediction
-  </h1>
+<style>
 
-  <p class="text-muted">
-    Select a future date range of up to 7 days.
-  </p>
+  .mc-prediction {
+
+    --mc-ink: #19231f;
+    --mc-green: #396d54;
+    --mc-green-dark: #2c5742;
+    --mc-green-soft: #eaf1ec;
+    --mc-gold: #d8b05e;
+    --mc-muted: #5f6b65;
+    --mc-line: rgba(25, 35, 31, 0.1);
+    --mc-radius: 24px;
+
+    color: var(--mc-ink);
+
+    padding-bottom: 80px;
+
+  }
 
 
-  <!--
-    Display validation errors.
-  -->
+  /* ==================================== */
+  /* PAGE HEADING */
+  /* ==================================== */
+
+  .mc-prediction__flag {
+
+    display: inline-block;
+
+    padding: 8px 18px;
+
+    margin-bottom: 20px;
+
+    border-radius: 999px;
+
+    background-color: rgba(
+      216,
+      176,
+      94,
+      0.22
+    );
+
+    color: #7a5a14;
+
+    font-size: 0.78rem;
+
+    font-weight: 700;
+
+    letter-spacing: 0.16em;
+
+    text-transform: uppercase;
+
+  }
+
+
+  .mc-prediction__eyebrow {
+
+    font-size: 0.78rem;
+
+    font-weight: 700;
+
+    letter-spacing: 0.16em;
+
+    text-transform: uppercase;
+
+    color: var(--mc-green);
+
+    margin-bottom: 14px;
+
+  }
+
+
+  .mc-prediction__title {
+
+    font-size: clamp(
+      2.4rem,
+      4.4vw,
+      3.4rem
+    );
+
+    font-weight: 800;
+
+    letter-spacing: -0.03em;
+
+    line-height: 1.04;
+
+    margin-bottom: 18px;
+
+  }
+
+
+  .mc-prediction__lead {
+
+    font-size: 1.12rem;
+
+    line-height: 1.6;
+
+    color: var(--mc-muted);
+
+    max-width: 640px;
+
+    margin-bottom: 0;
+
+  }
+
+
+  /* ==================================== */
+  /* CARDS AND FORM */
+  /* ==================================== */
+
+  .mc-card {
+
+    background-color: #ffffff;
+
+    border:
+      1px solid
+      var(--mc-line);
+
+    border-radius:
+      var(--mc-radius);
+
+    padding: 28px 32px;
+
+  }
+
+
+  .mc-label {
+
+    display: block;
+
+    font-size: 0.78rem;
+
+    font-weight: 700;
+
+    letter-spacing: 0.1em;
+
+    text-transform: uppercase;
+
+    color: var(--mc-muted);
+
+    margin-bottom: 10px;
+
+  }
+
+
+  .mc-input {
+
+    width: 100%;
+
+    padding: 13px 16px;
+
+    font-size: 1rem;
+
+    font-family: inherit;
+
+    color: var(--mc-ink);
+
+    background-color: #fbfbf9;
+
+    border:
+      1px solid
+      var(--mc-line);
+
+    border-radius: 12px;
+
+    outline: none;
+
+  }
+
+
+  .mc-input:focus {
+
+    border-color:
+      var(--mc-green);
+
+    box-shadow:
+      0 0 0 3px
+      rgba(
+        57,
+        109,
+        84,
+        0.14
+      );
+
+  }
+
+
+  .mc-button {
+
+    width: 100%;
+
+    padding: 13px 26px;
+
+    font-size: 1rem;
+
+    font-family: inherit;
+
+    font-weight: 700;
+
+    color: #ffffff;
+
+    background-color:
+      var(--mc-green);
+
+    border:
+      1px solid
+      var(--mc-green);
+
+    border-radius: 12px;
+
+    cursor: pointer;
+
+  }
+
+
+  .mc-button:hover {
+
+    background-color:
+      var(--mc-green-dark);
+
+    border-color:
+      var(--mc-green-dark);
+
+  }
+
+
+  .mc-form-note {
+
+    font-size: 0.95rem;
+
+    color: var(--mc-muted);
+
+    margin: 18px 0 0;
+
+  }
+
+
+  /* ==================================== */
+  /* NOTICES */
+  /* ==================================== */
+
+  .mc-notice {
+
+    border-radius: 16px;
+
+    padding: 18px 22px;
+
+    font-size: 0.98rem;
+
+    line-height: 1.55;
+
+  }
+
+
+  .mc-notice--error {
+
+    background-color:
+      rgba(
+        176,
+        60,
+        47,
+        0.12
+      );
+
+    color: #8d2f24;
+
+  }
+
+
+  .mc-notice--warning {
+
+    background-color:
+      rgba(
+        216,
+        176,
+        94,
+        0.18
+      );
+
+    color: #7a5a14;
+
+  }
+
+
+  .mc-notice--success {
+
+    background-color:
+      var(--mc-green-soft);
+
+    color:
+      var(--mc-green-dark);
+
+  }
+
+
+  /* ==================================== */
+  /* CALENDAR */
+  /* ==================================== */
+
+  .mc-calendar {
+
+    background-color: #ffffff;
+
+    border:
+      1px solid
+      var(--mc-line);
+
+    border-radius:
+      var(--mc-radius);
+
+    overflow: hidden;
+
+  }
+
+
+  .mc-calendar__bar {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content:
+      space-between;
+
+    gap: 16px;
+
+    padding: 22px 28px;
+
+    background-color:
+      #fbfbf9;
+
+    border-bottom:
+      1px solid
+      var(--mc-line);
+
+  }
+
+
+  .mc-calendar__meta {
+
+    font-size: 0.78rem;
+
+    font-weight: 700;
+
+    letter-spacing: 0.12em;
+
+    text-transform: uppercase;
+
+    color: var(--mc-muted);
+
+  }
+
+
+  .mc-calendar__meta strong {
+
+    font-size: 1.25rem;
+
+    font-weight: 800;
+
+    letter-spacing: -0.02em;
+
+    color: var(--mc-ink);
+
+    margin-left: 10px;
+
+    text-transform: none;
+
+  }
+
+
+  .mc-calendar__scroll {
+
+    overflow-x: auto;
+
+  }
+
+
+  .mc-calendar__grid {
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(
+        7,
+        minmax(
+          190px,
+          1fr
+        )
+      );
+
+    min-width: 1330px;
+
+  }
+
+
+  .mc-calendar__weekday {
+
+    padding: 18px 8px;
+
+    text-align: center;
+
+    font-size: 0.74rem;
+
+    font-weight: 700;
+
+    letter-spacing: 0.14em;
+
+    text-transform: uppercase;
+
+    color: var(--mc-muted);
+
+    border-bottom:
+      1px solid
+      var(--mc-line);
+
+    border-right:
+      1px solid
+      var(--mc-line);
+
+  }
+
+
+  .mc-calendar__weekday:last-child {
+
+    border-right: none;
+
+  }
+
+
+  /* ==================================== */
+  /* DAY CELLS */
+  /* ==================================== */
+
+  .mc-cell {
+
+    padding: 20px;
+
+    min-height: 240px;
+
+    border-right:
+      1px solid
+      var(--mc-line);
+
+    border-bottom:
+      1px solid
+      var(--mc-line);
+
+  }
+
+
+  .mc-cell:nth-child(7n) {
+
+    border-right: none;
+
+  }
+
+
+  .mc-cell--empty {
+
+    background-color:
+      #fcfcfa;
+
+  }
+
+
+  .mc-cell--tomorrow {
+
+    background-color:
+      #f1f7f3;
+
+    box-shadow:
+      inset
+      0
+      0
+      0
+      2px
+      var(--mc-green);
+
+  }
+
+
+  .mc-cell--next {
+
+    background-color:
+      #fdf8ec;
+
+    box-shadow:
+      inset
+      0
+      0
+      0
+      2px
+      var(--mc-gold);
+
+  }
+
+
+  .mc-cell__head {
+
+    display: flex;
+
+    align-items:
+      flex-start;
+
+    justify-content:
+      space-between;
+
+    gap: 10px;
+
+  }
+
+
+  .mc-cell__number {
+
+    font-size: 1.9rem;
+
+    font-weight: 800;
+
+    letter-spacing: -0.03em;
+
+    line-height: 1;
+
+  }
+
+
+  .mc-cell__weekday {
+
+    font-size: 0.95rem;
+
+    color: var(--mc-muted);
+
+    margin: 6px 0 16px;
+
+  }
+
+
+  .mc-badge {
+
+    padding: 5px 12px;
+
+    border-radius: 999px;
+
+    font-size: 0.72rem;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+
+  }
+
+
+  .mc-badge--tomorrow {
+
+    background-color:
+      var(--mc-green-soft);
+
+    color:
+      var(--mc-green-dark);
+
+  }
+
+
+  .mc-badge--next {
+
+    background-color:
+      rgba(
+        216,
+        176,
+        94,
+        0.26
+      );
+
+    color: #7a5a14;
+
+  }
+
+
+  /* ==================================== */
+  /* FIGURES */
+  /* ==================================== */
+
+  .mc-row {
+
+    display: flex;
+
+    align-items: baseline;
+
+    justify-content:
+      space-between;
+
+    gap: 12px;
+
+    padding: 5px 0;
+
+    font-size: 0.95rem;
+
+  }
+
+
+  .mc-row__label {
+
+    color: var(--mc-muted);
+
+  }
+
+
+  .mc-row__value {
+
+    font-weight: 700;
+
+    font-variant-numeric:
+      tabular-nums;
+
+  }
+
+
+  .mc-row__value--up {
+
+    color: var(--mc-green);
+
+  }
+
+
+  .mc-row__value--down {
+
+    color: #8d2f24;
+
+  }
+
+
+  /* ==================================== */
+  /* TOP ITEMS */
+  /* ==================================== */
+
+  .mc-top {
+
+    margin-top: 16px;
+
+    padding-top: 14px;
+
+    border-top:
+      1px solid
+      var(--mc-line);
+
+  }
+
+
+  .mc-top__label {
+
+    font-size: 0.78rem;
+
+    font-weight: 700;
+
+    letter-spacing: 0.08em;
+
+    color: var(--mc-muted);
+
+    margin-bottom: 10px;
+
+  }
+
+
+  .mc-top__item {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 4px 0;
+
+    font-size: 0.95rem;
+
+  }
+
+
+  .mc-top__rank {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: 22px;
+
+    height: 22px;
+
+    flex-shrink: 0;
+
+    border-radius: 999px;
+
+    background-color:
+      rgba(
+        25,
+        35,
+        31,
+        0.07
+      );
+
+    font-size: 0.76rem;
+
+    font-weight: 700;
+
+  }
+
+
+  .mc-top__name {
+
+    flex: 1;
+
+    overflow: hidden;
+
+    text-overflow:
+      ellipsis;
+
+    white-space: nowrap;
+
+  }
+
+
+  .mc-top__amount {
+
+    font-weight: 700;
+
+    font-variant-numeric:
+      tabular-nums;
+
+  }
+
+
+  /* ==================================== */
+  /* CONTEXT PILLS */
+  /* ==================================== */
+
+  .mc-pills {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    margin-top: 16px;
+
+  }
+
+
+  .mc-pill {
+
+    padding: 6px 12px;
+
+    border-radius: 999px;
+
+    font-size: 0.78rem;
+
+    font-weight: 700;
+
+    background-color:
+      rgba(
+        25,
+        35,
+        31,
+        0.06
+      );
+
+    color: var(--mc-muted);
+
+  }
+
+
+  .mc-pill--weather {
+
+    background-color:
+      rgba(
+        216,
+        176,
+        94,
+        0.2
+      );
+
+    color: #7a5a14;
+
+  }
+
+
+  .mc-pill--active {
+
+    background-color:
+      var(--mc-green-soft);
+
+    color:
+      var(--mc-green-dark);
+
+  }
+
+
+  .mc-cell__unavailable {
+
+    font-size: 0.9rem;
+
+    color: var(--mc-muted);
+
+    line-height: 1.5;
+
+  }
+
+</style>
+
+
+<section class="mc-prediction">
+
+
+  <!-- ==================================== -->
+  <!-- PAGE HEADING -->
+  <!-- ==================================== -->
+
+  <header class="mb-5">
+
+    <% if (simulated) { %>
+
+      <span class="mc-prediction__flag">
+
+        Some context data simulated
+
+      </span>
+
+    <% } %>
+
+
+    <p class="mc-prediction__eyebrow">
+
+      Demand outlook
+
+    </p>
+
+
+    <h1 class="mc-prediction__title">
+
+      Daily sales prediction.
+
+    </h1>
+
+
+    <p class="mc-prediction__lead">
+
+      Predicted sales, portions and menu demand using
+      reservations, weather, nearby events and public
+      holidays.
+
+    </p>
+
+  </header>
+
+
+
+  <!-- ==================================== -->
+  <!-- MESSAGES -->
+  <!-- ==================================== -->
+
   <% if (error) { %>
 
-    <div class="alert alert-danger">
+    <div class="mc-notice mc-notice--error mb-4">
+
       <%= error %>
+
     </div>
 
   <% } %>
 
 
-  <!--
-    Display success message.
-  -->
+  <% if (warning) { %>
+
+    <div class="mc-notice mc-notice--warning mb-4">
+
+      <%= warning %>
+
+    </div>
+
+  <% } %>
+
+
   <% if (success) { %>
 
-    <div class="alert alert-success">
+    <div class="mc-notice mc-notice--success mb-4">
+
       <%= success %>
+
     </div>
 
   <% } %>
 
 
-  <!--
-    Prediction date form.
-  -->
-  <form action="/prediction" method="POST">
 
-    <div class="row">
+  <!-- ==================================== -->
+  <!-- DATE RANGE FORM -->
+  <!-- ==================================== -->
 
-      <!-- Start Date -->
-      <div class="col-md-6 mb-3">
+  <div class="mc-card mb-5">
 
-        <label
-          for="startDate"
-          class="form-label"
-        >
-          Start Date
-        </label>
-
-        <input
-          type="date"
-          class="form-control"
-          id="startDate"
-          name="startDate"
-          min="<%= minimumDate %>"
-          max="<%= maximumDate %>"
-          value="<%= startDate || "" %>"
-          required
-        >
-
-      </div>
-
-
-      <!-- End Date -->
-      <div class="col-md-6 mb-3">
-
-        <label
-          for="endDate"
-          class="form-label"
-        >
-          End Date
-        </label>
-
-        <input
-          type="date"
-          class="form-control"
-          id="endDate"
-          name="endDate"
-          min="<%= minimumDate %>"
-          max="<%= maximumDate %>"
-          value="<%= endDate || "" %>"
-          required
-        >
-
-      </div>
-
-    </div>
-
-
-    <p class="text-muted">
-
-      Predictions are limited to 7 days
-      and must be within the available
-      weather forecast period.
-
-    </p>
-
-
-    <button
-      type="submit"
-      class="btn btn-primary"
+    <form
+      action="/prediction"
+      method="POST"
     >
-      Generate Prediction
-    </button>
 
-  </form>
+      <div class="row g-4 align-items-end">
 
 
-  <!--
-    Display the dates that will eventually
-    be sent to the ML model one day at a time.
-  -->
-  <% if (dates && dates.length > 0) { %>
+        <!-- START DATE -->
 
-    <hr class="my-4">
+        <div class="col-lg-4">
 
-    <h4>
-      Prediction Dates
-    </h4>
+          <label
+            class="mc-label"
+            for="startDate"
+          >
 
-    <ul class="list-group mb-4">
+            Start date
 
-      <% dates.forEach(date => { %>
-
-        <li class="list-group-item">
-          <%= date %>
-        </li>
-
-      <% }) %>
-
-    </ul>
-
-  <% } %>
+          </label>
 
 
-  <!--
-    Preview the ML inputs.
+          <input
 
-    These objects contain:
-    - menu names
-    - discounted prices
-    - reservations
-    - weather
-    - public holiday
-    - event count
-  -->
-  <% if (mlInputs && mlInputs.length > 0) { %>
+            class="mc-input"
 
-    <hr class="my-4">
+            type="date"
+
+            id="startDate"
+
+            name="startDate"
+
+            min="<%= minimumDate %>"
+
+            max="<%= maximumDate %>"
+
+            value="<%= startDate || "" %>"
+
+            required
+
+          >
+
+        </div>
 
 
-    <h3 class="mb-3">
-      ML Input Preview
-    </h3>
+
+        <!-- END DATE -->
+
+        <div class="col-lg-4">
+
+          <label
+            class="mc-label"
+            for="endDate"
+          >
+
+            End date
+
+          </label>
 
 
-    <p class="text-muted">
-      One ML input object will be created for each day.
+          <input
+
+            class="mc-input"
+
+            type="date"
+
+            id="endDate"
+
+            name="endDate"
+
+            min="<%= minimumDate %>"
+
+            max="<%= maximumDate %>"
+
+            value="<%= endDate || "" %>"
+
+            required
+
+          >
+
+        </div>
+
+
+
+        <!-- BUTTON -->
+
+        <div class="col-lg-4">
+
+          <button
+
+            class="mc-button"
+
+            type="submit"
+
+          >
+
+            Generate prediction
+
+          </button>
+
+        </div>
+
+
+      </div>
+
+    </form>
+
+
+    <p class="mc-form-note">
+
+      Up to 7 future days, within the weather forecast
+      window that ends <%= maximumDate %>.
+
     </p>
 
+  </div>
 
-    <% mlInputs.forEach(input => { %>
 
-      <div class="card mb-4">
 
-        <!-- Date -->
-        <div class="card-header">
+  <!-- ==================================== -->
+  <!-- CALENDAR OUTPUT -->
+  <!-- ==================================== -->
+
+  <% if (calendar) { %>
+
+
+    <div class="mc-calendar">
+
+
+      <!-- CALENDAR HEADER -->
+
+      <div class="mc-calendar__bar">
+
+
+        <span class="mc-calendar__meta">
+
+          Month:
 
           <strong>
-
-            <%= new Date(input.date).toISOString().slice(0, 10) %>
-
+            <%= calendar.monthLabel %>
           </strong>
 
-        </div>
+        </span>
 
 
-        <div class="card-body">
+        <span class="mc-calendar__meta">
 
-          <!-- Reservation -->
-          <p>
+          Year:
 
-            <strong>
-              Total Reservations:
-            </strong>
+          <strong>
+            <%= calendar.yearLabel %>
+          </strong>
 
-            <%= input.total_reservation %>
+        </span>
 
-          </p>
-
-
-          <!-- External data -->
-          <div class="row mb-4">
-
-            <!-- Temperature -->
-            <div class="col-md-3 mb-3">
-
-              <strong>
-                Average Temperature
-              </strong>
-
-              <div>
-                <%= input.avg_temp %> °C
-              </div>
-
-            </div>
-
-
-            <!-- Rain -->
-            <div class="col-md-3 mb-3">
-
-              <strong>
-                Rain
-              </strong>
-
-              <div>
-
-                <% if (input.rain) { %>
-
-                  Yes
-
-                <% } else { %>
-
-                  No
-
-                <% } %>
-
-              </div>
-
-            </div>
-
-
-            <!-- Public Holiday -->
-            <div class="col-md-3 mb-3">
-
-              <strong>
-                Public Holiday
-              </strong>
-
-              <div>
-
-                <% if (input.public_holiday) { %>
-
-                  Yes
-
-                <% } else { %>
-
-                  No
-
-                <% } %>
-
-              </div>
-
-            </div>
-
-
-            <!-- Events -->
-            <div class="col-md-3 mb-3">
-
-              <strong>
-                Events
-              </strong>
-
-              <div>
-                <%= input.num_of_event %>
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <!-- Menu information -->
-          <h5>
-            Menu Input
-          </h5>
-
-
-          <div class="table-responsive">
-
-            <table class="table table-bordered table-striped table-sm">
-
-              <thead>
-
-                <tr>
-
-                  <th>
-                    Menu
-                  </th>
-
-                  <th>
-                    Price After Discount
-                  </th>
-
-                </tr>
-
-              </thead>
-
-
-              <tbody>
-
-                <% for (let i = 1; i <= 15; i++) { %>
-
-                  <tr>
-
-                    <td>
-
-                      <%= input[`menu_${i}`] %>
-
-                    </td>
-
-
-                    <td>
-
-                      $<%= input[`menu_${i}_price_after_discount`].toFixed(2) %>
-
-                    </td>
-
-                  </tr>
-
-                <% } %>
-
-              </tbody>
-
-            </table>
-
-          </div>
-
-
-          <div class="alert alert-success mt-3">
-
-            ML input is complete and ready
-            to be sent to the prediction model.
-
-          </div>
-
-        </div>
 
       </div>
 
-    <% }) %>
+
+
+      <!-- CALENDAR SCROLL -->
+
+      <div class="mc-calendar__scroll">
+
+
+        <div class="mc-calendar__grid">
+
+
+          <!-- ==================================== -->
+          <!-- WEEKDAY HEADINGS -->
+          <!-- ==================================== -->
+
+          <% calendar.weekdayNames.forEach(weekday => { %>
+
+
+            <div class="mc-calendar__weekday">
+
+              <%= weekday %>
+
+            </div>
+
+
+          <% }) %>
+
+
+
+          <!-- ==================================== -->
+          <!-- CALENDAR WEEKS -->
+          <!-- ==================================== -->
+
+          <% calendar.weeks.forEach(week => { %>
+
+
+            <% week.forEach(day => { %>
+
+
+              <!-- EMPTY DAY -->
+
+              <% if (!day.inRange) { %>
+
+
+                <div
+                  class="mc-cell mc-cell--empty"
+                ></div>
+
+
+              <% } else { %>
+
+
+                <!-- ==================================== -->
+                <!-- PREDICTION DAY -->
+                <!-- ==================================== -->
+
+                <div
+
+                  class="mc-cell <%= day.badge === "Tomorrow"
+                    ? "mc-cell--tomorrow"
+                    : (
+                        day.badge === "Next day"
+                          ? "mc-cell--next"
+                          : ""
+                      )
+                  %>"
+
+                >
+
+
+                  <!-- DAY HEADING -->
+
+                  <div class="mc-cell__head">
+
+
+                    <span class="mc-cell__number">
+
+                      <%= day.dayNumber %>
+
+                    </span>
+
+
+
+                    <% if (day.badge) { %>
+
+
+                      <span
+
+                        class="mc-badge <%= day.badge === "Tomorrow"
+                          ? "mc-badge--tomorrow"
+                          : "mc-badge--next"
+                        %>"
+
+                      >
+
+                        <%= day.badge %>
+
+                      </span>
+
+
+                    <% } %>
+
+
+                  </div>
+
+
+
+                  <p class="mc-cell__weekday">
+
+                    <%= day.weekday %>
+
+                  </p>
+
+
+
+                  <!-- ==================================== -->
+                  <!-- PREDICTION VALUES -->
+                  <!-- ==================================== -->
+
+                  <% if (day.predictionAvailable) { %>
+
+
+                    <!-- FORECAST SALES -->
+
+                    <div class="mc-row">
+
+
+                      <span class="mc-row__label">
+
+                        Forecast sales
+
+                      </span>
+
+
+                      <span class="mc-row__value">
+
+                        <%= day.forecastSalesLabel %>
+
+                      </span>
+
+
+                    </div>
+
+
+
+                    <!-- PORTIONS -->
+
+                    <div class="mc-row">
+
+
+                      <span class="mc-row__label">
+
+                        Portions
+
+                      </span>
+
+
+                      <span class="mc-row__value">
+
+                        <%= day.portions %>
+
+                      </span>
+
+
+                    </div>
+
+
+
+                    <!-- RESERVATIONS -->
+
+                    <div class="mc-row">
+
+
+                      <span class="mc-row__label">
+
+                        Reservations
+
+                      </span>
+
+
+                      <span class="mc-row__value">
+
+
+                        <% if (day.reservations > 0) { %>
+
+
+                          <%= day.reservations %><%= day.reservationIsSimulated ? "*" : "" %>
+
+
+                        <% } else { %>
+
+
+                          Unknown
+
+
+                        <% } %>
+
+
+                      </span>
+
+
+                    </div>
+
+
+
+                    <!-- DEMAND -->
+
+                    <div class="mc-row">
+
+
+                      <span class="mc-row__label">
+
+                        Demand
+
+                      </span>
+
+
+                      <span
+                        class="mc-row__value mc-row__value--<%= day.demandTone %>"
+                      >
+
+                        <%= day.demandLabel %><%= day.demandDeltaLabel
+                          ? ", " + day.demandDeltaLabel
+                          : ""
+                        %>
+
+                      </span>
+
+
+                    </div>
+
+
+
+                    <!-- ==================================== -->
+                    <!-- TOP MENU ITEMS -->
+                    <!-- ==================================== -->
+
+                    <% if (day.topItems.length > 0) { %>
+
+
+                      <div class="mc-top">
+
+
+                        <p class="mc-top__label">
+
+                          Top menu items
+
+                        </p>
+
+
+
+                        <% day.topItems.forEach(item => { %>
+
+
+                          <div class="mc-top__item">
+
+
+                            <span class="mc-top__rank">
+
+                              <%= item.rank %>
+
+                            </span>
+
+
+                            <span class="mc-top__name">
+
+                              <%= item.name %>
+
+                            </span>
+
+
+                            <span class="mc-top__amount">
+
+                              <%= item.amount %>
+
+                            </span>
+
+
+                          </div>
+
+
+                        <% }) %>
+
+
+                      </div>
+
+
+                    <% } %>
+
+
+
+                  <% } else { %>
+
+
+                    <p class="mc-cell__unavailable">
+
+                      Sales prediction unavailable.
+                      Context only.
+
+                    </p>
+
+
+                  <% } %>
+
+
+
+                  <!-- ==================================== -->
+                  <!-- CONTEXT PILLS -->
+                  <!-- ==================================== -->
+
+                  <div class="mc-pills">
+
+
+                    <!-- WEATHER -->
+
+                    <span
+                      class="mc-pill mc-pill--weather"
+                    >
+
+
+                      <% if (
+                        Number.isFinite(
+                          day.temperature
+                        )
+                      ) { %>
+
+
+                        <%= day.temperature.toFixed(0) %>&deg;C
+
+                        <%= day.rain
+                          ? " · Rain"
+                          : " · Dry"
+                        %>
+
+
+                      <% } else { %>
+
+
+                        Weather unknown
+
+
+                      <% } %>
+
+
+                    </span>
+
+
+
+                    <!-- EVENTS -->
+
+                    <span
+
+                      class="mc-pill <%= day.eventCount > 0
+                        ? "mc-pill--active"
+                        : ""
+                      %>"
+
+                    >
+
+
+                      <% if (day.eventCount > 0) { %>
+
+
+                        <%= day.eventCount %>
+
+                        event<%= day.eventCount === 1 ? "" : "s" %>
+
+
+                      <% } else { %>
+
+
+                        No major event
+
+
+                      <% } %>
+
+
+                    </span>
+
+
+
+                    <!-- PUBLIC HOLIDAY -->
+
+                    <span
+
+                      class="mc-pill <%= day.publicHoliday
+                        ? "mc-pill--active"
+                        : ""
+                      %>"
+
+                    >
+
+
+                      <% if (day.publicHoliday) { %>
+
+
+                        <%= day.holidayName || "Public holiday" %>
+
+
+                      <% } else { %>
+
+
+                        No holiday
+
+
+                      <% } %>
+
+
+                    </span>
+
+
+                  </div>
+
+
+                </div>
+
+
+              <% } %>
+
+
+            <% }) %>
+
+
+          <% }) %>
+
+
+        </div>
+
+
+      </div>
+
+
+    </div>
+
+
+
+    <!-- ==================================== -->
+    <!-- SIMULATED DATA NOTE -->
+    <!-- ==================================== -->
+
+    <% if (simulated) { %>
+
+
+      <p class="mc-form-note">
+
+        Figures marked with * are temporary stand-in
+        reservation values. Sales predictions are generated
+        by the machine learning model.
+
+      </p>
+
+
+    <% } %>
+
 
   <% } %>
 
-</div>
 
-
-<%- include("partials/footer") %>
+</section>

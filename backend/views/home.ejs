@@ -1,141 +1,2427 @@
-<!DOCTYPE html>
-<html lang="en">
+<%- include("partials/header", {
+  title: "Home",
+  pageTitle: "Home"
+}) %>
 
-<head>
-  <meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
+<style>
+
+  .sales-section {
+    margin-block: 2.5rem;
+  }
+
+
+  .sales-period-switch {
+    display: inline-flex;
+    overflow: hidden;
+    border: 1px solid var(--mc-border);
+    border-radius: 0.7rem;
+    background: #f4f6f4;
+  }
+
+
+  .sales-period-switch button {
+    border: 0;
+    padding: 0.55rem 0.85rem;
+    color: var(--mc-muted);
+    background: transparent;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+
+  .sales-period-switch button.active {
+    color: #ffffff;
+    background: var(--mc-ink);
+  }
+
+
+  .sales-date-heading {
+    margin: 0;
+    color: var(--mc-ink);
+    font-size: clamp(1.85rem, 4vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.055em;
+    line-height: 1;
+  }
+
+
+  .sales-date-subtitle {
+    margin-top: 0.55rem;
+    color: var(--mc-muted);
+    font-size: 0.86rem;
+  }
+
+
+  .sales-dashboard {
+    overflow: hidden;
+  }
+
+
+  .sales-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid var(--mc-border);
+  }
+
+
+  .sales-summary {
+    border-right: 1px solid var(--mc-border);
+    padding: 1.25rem 1.4rem;
+  }
+
+
+  .sales-summary:last-child {
+    border-right: 0;
+  }
+
+
+  .sales-summary-label {
+    color: var(--mc-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+
+  .sales-summary-value {
+    margin-top: 0.35rem;
+    color: var(--mc-ink);
+    font-size: clamp(1.35rem, 2.5vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.045em;
+  }
+
+
+  .sales-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.18rem;
+    margin-top: 0.4rem;
+    border-radius: 999px;
+    padding: 0.25rem 0.45rem;
+    color: #1c7651;
+    background: #e4f4eb;
+    font-size: 0.68rem;
+    font-weight: 750;
+  }
+
+
+  .sales-change.negative {
+    color: #a34444;
+    background: #f9e8e6;
+  }
+
+
+  .sales-change.neutral {
+    color: var(--mc-muted);
+    background: #eef1ef;
+  }
+
+
+  .menu-revenue-layout {
+    display: grid;
+    grid-template-columns:
+      minmax(15rem, 0.85fr)
+      minmax(18rem, 1.15fr);
+    gap: 2rem;
+    align-items: center;
+    padding: 1.5rem;
+  }
+
+
+  .menu-revenue-chart-shell {
+    display: grid;
+    place-items: center;
+    min-height: 22rem;
+  }
+
+
+  .menu-revenue-chart {
+    position: relative;
+    display: grid;
+    width: min(100%, 20rem);
+    aspect-ratio: 1;
+    place-items: center;
+    border-radius: 50%;
+    background: #e4e9e6;
+    box-shadow:
+      0 20px 45px
+      rgba(23, 35, 31, 0.12);
+  }
+
+
+  .menu-revenue-chart::after {
+    position: absolute;
+    width: 61%;
+    aspect-ratio: 1;
+    border: 1px solid var(--mc-border);
+    border-radius: 50%;
+    background: #fffdfa;
+    content: "";
+  }
+
+
+  .menu-revenue-center {
+    z-index: 1;
+    display: grid;
+    gap: 0.2rem;
+    text-align: center;
+  }
+
+
+  .menu-revenue-center span {
+    color: var(--mc-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+
+  .menu-revenue-center strong {
+    color: var(--mc-ink);
+    font-size: clamp(1.45rem, 3vw, 2.1rem);
+  }
+
+
+  .menu-revenue-ranking {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+
+  .menu-revenue-row {
+    display: grid;
+    grid-template-columns:
+      auto
+      minmax(0, 1fr)
+      auto;
+    gap: 0.7rem;
+    align-items: center;
+    border: 1px solid var(--mc-border);
+    border-radius: 0.8rem;
+    padding: 0.75rem 0.9rem;
+    background: #ffffff;
+  }
+
+
+  .menu-revenue-dot {
+    width: 0.72rem;
+    height: 0.72rem;
+    border-radius: 50%;
+  }
+
+
+  .menu-revenue-name {
+    overflow: hidden;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+
+  .menu-revenue-value {
+    text-align: right;
+  }
+
+
+  .menu-revenue-value strong {
+    display: block;
+    font-size: 0.82rem;
+  }
+
+
+  .menu-revenue-value span {
+    display: block;
+    color: var(--mc-muted);
+    font-size: 0.68rem;
+  }
+
+
+  .menu-revenue-other {
+    margin-top: 0.75rem;
+    border: 1px solid var(--mc-border);
+    border-radius: 0.8rem;
+    background: #f7f9f7;
+  }
+
+
+  .menu-revenue-other summary {
+    cursor: pointer;
+    padding: 0.8rem 0.9rem;
+    color: var(--mc-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+
+  .menu-revenue-other-list {
+    display: grid;
+    gap: 0.45rem;
+    border-top: 1px solid var(--mc-border);
+    padding: 0.75rem 0.9rem;
+  }
+
+
+  .menu-revenue-other-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--mc-muted);
+    font-size: 0.72rem;
+  }
+
+
+  .sales-note {
+    padding: 0 1.5rem 1.5rem;
+    color: var(--mc-muted);
+    font-size: 0.72rem;
+  }
+
+
+  .sales-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+
+  .sales-kpi-card {
+    min-height: 9.5rem;
+    border: 1px solid var(--mc-border);
+    border-radius: 1rem;
+    padding: 1.2rem 1.3rem;
+    background: #ffffff;
+  }
+
+
+  .sales-kpi-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--mc-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+
+  .sales-kpi-value {
+    margin-top: 1.15rem;
+    color: var(--mc-ink);
+    font-size: clamp(1.55rem, 3vw, 2.25rem);
+    font-weight: 800;
+  }
+
+
+  .sales-kpi-caption {
+    margin-top: 0.45rem;
+    color: var(--mc-muted);
+    font-size: 0.72rem;
+  }
+
+
+  .sales-coming-soon {
+    display: inline-flex;
+    border-radius: 999px;
+    padding: 0.28rem 0.5rem;
+    color: #765d22;
+    background: #fff2cc;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+
+  .sales-empty {
+    border: 1px dashed var(--mc-border);
+    border-radius: 0.8rem;
+    padding: 1rem;
+    color: var(--mc-muted);
+    font-size: 0.8rem;
+  }
+
+
+  @media (max-width: 767.98px) {
+
+    .sales-summary-grid {
+      grid-template-columns: 1fr;
+    }
+
+
+    .sales-summary {
+      border-right: 0;
+      border-bottom: 1px solid var(--mc-border);
+    }
+
+
+    .sales-kpi-grid {
+      grid-template-columns: 1fr;
+    }
+
+
+    .menu-revenue-layout {
+      grid-template-columns: 1fr;
+    }
+
+  }
+
+</style>
+
+
+
+<section aria-labelledby="welcome-heading">
+
+
+  <!-- ==================================== -->
+  <!-- WELCOME -->
+  <!-- ==================================== -->
+
+  <div
+    class="mc-panel overflow-hidden position-relative p-4 p-md-5 mb-4"
+    style="
+      background:
+        linear-gradient(
+          125deg,
+          #fffdfa 0%,
+          #edf6f1 70%,
+          #f9efda 100%
+        );
+    "
   >
 
-  <title>Restaurant Sales Predictor</title>
+    <div class="row align-items-center g-4 position-relative">
 
-  <!-- Bootstrap -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  >
-</head>
 
-<body>
+      <div class="col-lg-8 py-lg-3">
 
-  <!-- Navigation -->
-  <nav class="navbar navbar-dark bg-dark">
-    <div class="container">
+        <p class="mc-eyebrow">
+          Restaurant intelligence
+        </p>
 
-      <a
-        class="navbar-brand"
-        href="/"
-      >
-        Restaurant Sales Predictor
-      </a>
 
-      <a
-        class="btn btn-light"
-        href="/prediction"
-      >
-        New Prediction
-      </a>
+        <h1
+          id="welcome-heading"
+          class="display-4 fw-bold mc-page-title mb-3"
+        >
+          Make every service
+          <br class="d-none d-md-block">
+          easier to plan.
+        </h1>
+
+
+        <p class="lead mc-page-copy mb-4">
+          Bring menu data, reservations, weather and local
+          events together to anticipate demand and make
+          smarter inventory decisions.
+        </p>
+
+
+        <div class="d-flex flex-wrap gap-2">
+
+          <a
+            href="/menu"
+            class="btn btn-dark"
+          >
+            Explore menu
+          </a>
+
+
+          <a
+            href="/reservations"
+            class="btn btn-outline-dark"
+          >
+            View reservations
+          </a>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="col-lg-4">
+
+        <div
+          class="p-4 rounded-4 text-white"
+          style="
+            background: #17231f;
+            box-shadow:
+              0 20px 40px
+              rgba(23, 35, 31, 0.18);
+          "
+        >
+
+          <div
+            class="d-flex align-items-center justify-content-between mb-4"
+          >
+
+            <span
+              class="small text-uppercase fw-bold"
+              style="
+                letter-spacing: .1em;
+                color: #aac7ba;
+              "
+            >
+              Planning pulse
+            </span>
+
+
+            <span
+              class="badge"
+              style="
+                color: #bce8d4;
+                background:
+                  rgba(103, 198, 155, .14);
+              "
+            >
+              Ready
+            </span>
+
+          </div>
+
+
+
+          <div class="d-flex gap-3 align-items-start mb-3">
+
+            <span
+              class="mc-icon"
+              aria-hidden="true"
+            >
+              ◷
+            </span>
+
+
+            <div>
+
+              <div class="fw-semibold">
+                Real sales history
+              </div>
+
+
+              <div
+                class="small"
+                style="color: #aebbb5;"
+              >
+                Dashboard figures come from imported
+                daily sales records.
+              </div>
+
+            </div>
+
+          </div>
+
+
+
+          <div class="d-flex gap-3 align-items-start">
+
+            <span
+              class="mc-icon"
+              aria-hidden="true"
+            >
+              ↗
+            </span>
+
+
+            <div>
+
+              <div class="fw-semibold">
+                ML forecasts
+              </div>
+
+
+              <div
+                class="small"
+                style="color: #aebbb5;"
+              >
+                Saved predictions are used for the
+                future sales forecast.
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
 
     </div>
-  </nav>
+
+  </div>
 
 
-  <main class="container mt-5">
 
-    <div class="mb-4">
+  <!-- ==================================== -->
+  <!-- SALES -->
+  <!-- ==================================== -->
 
-      <h1>
-        Prediction History
-      </h1>
+  <section
+    class="sales-section"
+    aria-labelledby="sales-overview-heading"
+  >
 
-      <p class="text-muted">
-        Previous restaurant sales prediction requests.
+
+    <div
+      class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3"
+    >
+
+      <div>
+
+        <h2
+          id="sales-today-date"
+          class="sales-date-heading"
+        >
+          Today
+        </h2>
+
+
+        <p
+          id="sales-date-range"
+          class="sales-date-subtitle mb-3"
+        >
+          No sales data available
+        </p>
+
+
+        <p class="mc-eyebrow mb-1">
+          Sales tracking
+        </p>
+
+
+        <h3
+          id="sales-overview-heading"
+          class="h3 fw-bold mc-page-title mb-1"
+        >
+          Sales overview
+        </h3>
+
+
+        <p class="text-secondary mb-0">
+          Revenue and item performance from real sales records.
+        </p>
+
+      </div>
+
+
+
+      <div
+        class="sales-period-switch"
+        role="group"
+        aria-label="Sales period"
+      >
+
+        <button
+          type="button"
+          class="active"
+          data-sales-period="7"
+          aria-pressed="true"
+        >
+          7 days
+        </button>
+
+
+        <button
+          type="button"
+          data-sales-period="30"
+          aria-pressed="false"
+        >
+          30 days
+        </button>
+
+
+        <button
+          type="button"
+          data-sales-period="year"
+          aria-pressed="false"
+        >
+          1 year
+        </button>
+
+      </div>
+
+    </div>
+
+
+
+    <div class="card sales-dashboard">
+
+
+      <!-- SUMMARY -->
+
+      <div class="sales-summary-grid">
+
+
+        <div class="sales-summary">
+
+          <div class="sales-summary-label">
+            Total sales
+          </div>
+
+
+          <div
+            id="sales-total"
+            class="sales-summary-value"
+          >
+            $0
+          </div>
+
+
+          <span
+            id="sales-change"
+            class="sales-change"
+          >
+            0%
+          </span>
+
+        </div>
+
+
+
+        <div class="sales-summary">
+
+          <div class="sales-summary-label">
+            Items sold
+          </div>
+
+
+          <div
+            id="sales-items"
+            class="sales-summary-value"
+          >
+            0
+          </div>
+
+
+          <span
+            id="items-change"
+            class="sales-change"
+          >
+            0%
+          </span>
+
+        </div>
+
+
+
+        <div class="sales-summary">
+
+          <div class="sales-summary-label">
+            Average item value
+          </div>
+
+
+          <div
+            id="sales-average"
+            class="sales-summary-value"
+          >
+            $0
+          </div>
+
+
+          <span
+            id="average-change"
+            class="sales-change"
+          >
+            0%
+          </span>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- MENU REVENUE -->
+
+      <div class="menu-revenue-layout">
+
+
+        <div class="menu-revenue-chart-shell">
+
+          <div
+            id="menu-revenue-chart"
+            class="menu-revenue-chart"
+            role="img"
+            aria-label="Revenue contribution by menu item"
+          >
+
+            <div class="menu-revenue-center">
+
+              <span>
+                Total revenue
+              </span>
+
+
+              <strong id="menu-revenue-total">
+                $0
+              </strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <div>
+
+          <h3 class="h5 fw-bold mb-3">
+            Revenue contribution by menu
+          </h3>
+
+
+          <div
+            id="menu-revenue-ranking"
+            class="menu-revenue-ranking"
+          >
+
+            <div class="sales-empty">
+              No sales data for this period.
+            </div>
+
+          </div>
+
+
+
+          <details
+            id="menu-revenue-other"
+            class="menu-revenue-other"
+            style="display: none;"
+          >
+
+            <summary
+              id="menu-revenue-other-summary"
+            >
+              Other menu items
+            </summary>
+
+
+            <div
+              id="menu-revenue-other-list"
+              class="menu-revenue-other-list"
+            ></div>
+
+          </details>
+
+        </div>
+
+      </div>
+
+
+
+      <p class="sales-note mb-0">
+
+        Revenue is calculated from stored sales quantities,
+        menu prices and promotions recorded for each sale date.
+
       </p>
 
     </div>
 
 
-    <!--
-      If there are no prediction requests yet,
-      display a simple message.
-    -->
-    <% if (requestHistory.length === 0) { %>
 
-      <div class="alert alert-info">
+    <!-- ==================================== -->
+    <!-- KPI CARDS -->
+    <!-- ==================================== -->
 
-        No predictions have been made yet.
-
-        <a href="/prediction">
-          Make the first prediction.
-        </a>
-
-      </div>
-
-    <% } else { %>
+    <div
+      class="sales-kpi-grid"
+      aria-label="Sales summary"
+    >
 
 
-      <!-- Prediction history table -->
-      <table class="table table-bordered table-striped">
+      <article class="sales-kpi-card">
 
-        <thead>
+        <div class="sales-kpi-top">
 
-          <tr>
-
-            <th>
-              Request ID
-            </th>
-
-            <th>
-              Prediction ID
-            </th>
-
-            <th>
-              Date
-            </th>
-
-          </tr>
-
-        </thead>
+          <span>
+            Total revenue
+          </span>
 
 
-        <tbody>
+          <span aria-hidden="true">
+            •••
+          </span>
 
-          <% requestHistory.forEach(request => { %>
-
-            <tr>
-
-              <td>
-                <%= request._id %>
-              </td>
-
-              <td>
-                <%= request.prediction_id %>
-              </td>
-
-              <td>
-                <%= new Date(request.date).toLocaleDateString() %>
-              </td>
-
-            </tr>
-
-          <% }) %>
-
-        </tbody>
-
-      </table>
-
-    <% } %>
-
-  </main>
+        </div>
 
 
-  <!-- Bootstrap JavaScript -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
-  </script>
+        <div
+          id="dashboard-total-revenue"
+          class="sales-kpi-value"
+        >
+          $0
+        </div>
 
-</body>
 
-</html>
+        <p
+          id="dashboard-total-caption"
+          class="sales-kpi-caption mb-0"
+        >
+          No sales data available
+        </p>
+
+      </article>
+
+
+
+      <article class="sales-kpi-card">
+
+        <div class="sales-kpi-top">
+
+          <span>
+            Saved sales forecast
+          </span>
+
+
+          <span aria-hidden="true">
+            ↗
+          </span>
+
+        </div>
+
+
+        <div
+          id="dashboard-sales-forecast"
+          class="sales-kpi-value"
+        >
+          $0
+        </div>
+
+
+        <p
+          id="dashboard-forecast-caption"
+          class="sales-kpi-caption mb-0"
+        >
+          No saved future predictions
+        </p>
+
+      </article>
+
+
+
+      <article class="sales-kpi-card">
+
+        <div class="sales-kpi-top">
+
+          <span>
+            Amount saved
+          </span>
+
+
+          <span class="sales-coming-soon">
+            Coming soon
+          </span>
+
+        </div>
+
+
+        <div class="sales-kpi-value">
+          —
+        </div>
+
+
+        <p class="sales-kpi-caption mb-0">
+          Savings from smarter stock decisions will appear here.
+        </p>
+
+      </article>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- ==================================== -->
+  <!-- WORKSPACE -->
+  <!-- ==================================== -->
+
+  <div
+    class="d-flex align-items-end justify-content-between gap-3 mb-3"
+  >
+
+    <div>
+
+      <p class="mc-eyebrow">
+        Workspace
+      </p>
+
+
+      <h2 class="h3 fw-bold mc-page-title mb-0">
+        Start planning
+      </h2>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="row g-4">
+
+
+    <div class="col-md-6 col-xl-3">
+
+      <a
+        href="/reservations"
+        class="card h-100 text-decoration-none text-body"
+      >
+
+        <div class="card-body p-4">
+
+          <span
+            class="mc-icon mb-4"
+            aria-hidden="true"
+          >
+            ◫
+          </span>
+
+
+          <h3 class="h5 fw-bold">
+            Reservations
+          </h3>
+
+
+          <p class="text-secondary mb-4">
+            Capture upcoming covers by date and service period.
+          </p>
+
+
+          <span class="fw-semibold text-success">
+            Plan covers →
+          </span>
+
+        </div>
+
+      </a>
+
+    </div>
+
+
+
+    <div class="col-md-6 col-xl-3">
+
+      <a
+        href="/weather"
+        class="card h-100 text-decoration-none text-body"
+      >
+
+        <div class="card-body p-4">
+
+          <span
+            class="mc-icon mb-4"
+            aria-hidden="true"
+          >
+            ☀
+          </span>
+
+
+          <h3 class="h5 fw-bold">
+            Demand context
+          </h3>
+
+
+          <p class="text-secondary mb-4">
+            Use weather, holidays and events to prepare
+            for demand shifts.
+          </p>
+
+
+          <span class="fw-semibold text-success">
+            Check context →
+          </span>
+
+        </div>
+
+      </a>
+
+    </div>
+
+
+
+    <div class="col-md-6 col-xl-3">
+
+      <a
+        href="/prediction"
+        class="card h-100 text-decoration-none text-body"
+      >
+
+        <div class="card-body p-4">
+
+          <span
+            class="mc-icon mb-4"
+            aria-hidden="true"
+          >
+            ↗
+          </span>
+
+
+          <h3 class="h5 fw-bold">
+            Sales prediction
+          </h3>
+
+
+          <p class="text-secondary mb-4">
+            Generate future menu demand using the ML model.
+          </p>
+
+
+          <span class="fw-semibold text-success">
+            Predict demand →
+          </span>
+
+        </div>
+
+      </a>
+
+    </div>
+
+
+
+    <div class="col-md-6 col-xl-3">
+
+      <a
+        href="/import"
+        class="card h-100 text-decoration-none text-body"
+      >
+
+        <div class="card-body p-4">
+
+          <span
+            class="mc-icon mb-4"
+            aria-hidden="true"
+          >
+            ⇧
+          </span>
+
+
+          <h3 class="h5 fw-bold">
+            Data imports
+          </h3>
+
+
+          <p class="text-secondary mb-4">
+            Upload fresh sales, reservations and menu records.
+          </p>
+
+
+          <span class="fw-semibold text-success">
+            Import data →
+          </span>
+
+        </div>
+
+      </a>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- ==================================== -->
+<!-- SAFE DASHBOARD DATA -->
+<!-- ==================================== -->
+
+<script
+  id="sales-dashboard-data"
+  type="application/json"
+>
+<%- JSON.stringify(
+  typeof salesDashboard !== "undefined" && salesDashboard
+    ? salesDashboard
+    : {
+        today: null,
+        periods: {},
+        forecast: {
+          revenue: 0,
+          portions: 0,
+          days: 0,
+          startDate: null,
+          endDate: null
+        }
+      }
+).replace(/</g, "\\u003c") %>
+</script>
+
+
+
+<!-- ==================================== -->
+<!-- DASHBOARD JAVASCRIPT -->
+<!-- ==================================== -->
+
+<script>
+
+  (() => {
+
+    /**
+     * Default dashboard.
+     *
+     * This is used if data is missing.
+     */
+    const defaultDashboard = {
+
+      today: null,
+
+      periods: {},
+
+      forecast: {
+        revenue: 0,
+        portions: 0,
+        days: 0,
+        startDate: null,
+        endDate: null,
+      },
+    };
+
+
+    /**
+     * Safely convert a value to a number.
+     */
+    function safeNumber(value) {
+
+      const number =
+        Number(value);
+
+      if (
+        !Number.isFinite(number)
+      ) {
+        return 0;
+      }
+
+      return number;
+    }
+
+
+    /**
+     * Get element safely.
+     */
+    function getElement(id) {
+
+      return document.getElementById(id);
+    }
+
+
+    /**
+     * Set text only if element exists.
+     */
+    function setText(
+      id,
+      value,
+    ) {
+
+      const element =
+        getElement(id);
+
+      if (!element) {
+        return;
+      }
+
+      element.textContent =
+        value;
+    }
+
+
+    /**
+     * --------------------------------------------------
+     * READ DASHBOARD JSON
+     * --------------------------------------------------
+     */
+
+    let dashboard =
+      defaultDashboard;
+
+
+    const dashboardElement =
+      getElement(
+        "sales-dashboard-data",
+      );
+
+
+    if (
+      dashboardElement
+    ) {
+
+      try {
+
+        const raw =
+          dashboardElement
+            .textContent
+            .trim();
+
+
+        if (raw) {
+
+          const parsed =
+            JSON.parse(raw);
+
+
+          if (
+            parsed &&
+            typeof parsed === "object"
+          ) {
+
+            dashboard = {
+
+              ...defaultDashboard,
+
+              ...parsed,
+
+              periods:
+                parsed.periods &&
+                typeof parsed.periods === "object"
+                  ? parsed.periods
+                  : {},
+
+              forecast: {
+
+                ...defaultDashboard.forecast,
+
+                ...(
+                  parsed.forecast &&
+                  typeof parsed.forecast === "object"
+                    ? parsed.forecast
+                    : {}
+                ),
+              },
+            };
+          }
+        }
+
+      } catch (error) {
+
+        console.warn(
+          "Could not read sales dashboard data.",
+          error,
+        );
+
+        dashboard =
+          defaultDashboard;
+      }
+    }
+
+
+    /**
+     * --------------------------------------------------
+     * SAFE DATA
+     * --------------------------------------------------
+     */
+
+    const salesData =
+      dashboard.periods &&
+      typeof dashboard.periods === "object"
+        ? dashboard.periods
+        : {};
+
+
+    const forecast = {
+
+      revenue:
+        safeNumber(
+          dashboard.forecast
+            ?.revenue,
+        ),
+
+      portions:
+        safeNumber(
+          dashboard.forecast
+            ?.portions,
+        ),
+
+      days:
+        safeNumber(
+          dashboard.forecast
+            ?.days,
+        ),
+
+      startDate:
+        dashboard.forecast
+          ?.startDate ??
+        null,
+
+      endDate:
+        dashboard.forecast
+          ?.endDate ??
+        null,
+    };
+
+
+    /**
+     * --------------------------------------------------
+     * FORMATTERS
+     * --------------------------------------------------
+     */
+
+    const currency =
+      new Intl.NumberFormat(
+        "en-AU",
+        {
+          style: "currency",
+          currency: "AUD",
+          maximumFractionDigits: 0,
+        },
+      );
+
+
+    const integer =
+      new Intl.NumberFormat(
+        "en-AU",
+      );
+
+
+    const longDate =
+      new Intl.DateTimeFormat(
+        "en-AU",
+        {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        },
+      );
+
+
+    const rangeDate =
+      new Intl.DateTimeFormat(
+        "en-AU",
+        {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        },
+      );
+
+
+    /**
+     * Donut colours.
+     */
+    const menuColours = [
+      "#8b43df",
+      "#f2b72f",
+      "#ef5c3d",
+      "#49ace0",
+      "#238866",
+    ];
+
+
+    /**
+     * --------------------------------------------------
+     * DATE HELPERS
+     * --------------------------------------------------
+     */
+
+    function parseDisplayDate(
+      value,
+    ) {
+
+      if (!value) {
+        return null;
+      }
+
+
+      const date =
+        new Date(
+          `${value}T12:00:00`,
+        );
+
+
+      if (
+        Number.isNaN(
+          date.getTime(),
+        )
+      ) {
+        return null;
+      }
+
+
+      return date;
+    }
+
+
+    function displayRange(
+      start,
+      end,
+    ) {
+
+      const startDate =
+        parseDisplayDate(
+          start,
+        );
+
+
+      const endDate =
+        parseDisplayDate(
+          end,
+        );
+
+
+      if (
+        !startDate ||
+        !endDate
+      ) {
+        return "";
+      }
+
+
+      return (
+        `${rangeDate.format(startDate)} – ` +
+        `${rangeDate.format(endDate)}`
+      );
+    }
+
+
+    /**
+     * --------------------------------------------------
+     * PERCENTAGE CHANGE
+     * --------------------------------------------------
+     */
+
+    function percentageChange(
+      currentValue,
+      previousValue,
+    ) {
+
+      const current =
+        safeNumber(
+          currentValue,
+        );
+
+
+      const previous =
+        safeNumber(
+          previousValue,
+        );
+
+
+      if (
+        previous === 0
+      ) {
+
+        if (
+          current === 0
+        ) {
+          return 0;
+        }
+
+        return null;
+      }
+
+
+      return (
+        (
+          current -
+          previous
+        ) /
+        previous
+      ) *
+        100;
+    }
+
+
+    function updateChange(
+      element,
+      value,
+    ) {
+
+      if (!element) {
+        return;
+      }
+
+
+      element.classList.remove(
+        "negative",
+        "neutral",
+      );
+
+
+      if (
+        value === null
+      ) {
+
+        element.textContent =
+          "New";
+
+
+        element.classList.add(
+          "neutral",
+        );
+
+        return;
+      }
+
+
+      const number =
+        safeNumber(
+          value,
+        );
+
+
+      const positive =
+        number >= 0;
+
+
+      element.textContent =
+        `${
+          positive
+            ? "↗"
+            : "↘"
+        } ${
+          Math.abs(
+            number,
+          ).toFixed(1)
+        }%`;
+
+
+      element.classList.toggle(
+        "negative",
+        !positive,
+      );
+    }
+
+
+    /**
+     * --------------------------------------------------
+     * SAFE PERIOD OBJECT
+     * --------------------------------------------------
+     */
+
+    function normalisePeriod(
+      value,
+    ) {
+
+      const data =
+        value &&
+        typeof value === "object"
+          ? value
+          : {};
+
+
+      return {
+
+        startDate:
+          data.startDate ??
+          null,
+
+        endDate:
+          data.endDate ??
+          null,
+
+        revenue:
+          safeNumber(
+            data.revenue,
+          ),
+
+        previousRevenue:
+          safeNumber(
+            data.previousRevenue,
+          ),
+
+        itemsSold:
+          safeNumber(
+            data.itemsSold,
+          ),
+
+        previousItemsSold:
+          safeNumber(
+            data.previousItemsSold,
+          ),
+
+        averageItemValue:
+          safeNumber(
+            data.averageItemValue,
+          ),
+
+        previousAverageItemValue:
+          safeNumber(
+            data.previousAverageItemValue,
+          ),
+
+        menuRevenue:
+          Array.isArray(
+            data.menuRevenue,
+          )
+            ? data.menuRevenue
+            : [],
+      };
+    }
+
+
+    /**
+     * --------------------------------------------------
+     * MENU REVENUE
+     * --------------------------------------------------
+     */
+
+    function renderMenuRevenue(
+      rawData,
+    ) {
+
+      const data =
+        normalisePeriod(
+          rawData,
+        );
+
+
+      const chart =
+        getElement(
+          "menu-revenue-chart",
+        );
+
+
+      const ranking =
+        getElement(
+          "menu-revenue-ranking",
+        );
+
+
+      const otherDetails =
+        getElement(
+          "menu-revenue-other",
+        );
+
+
+      const otherSummary =
+        getElement(
+          "menu-revenue-other-summary",
+        );
+
+
+      const otherList =
+        getElement(
+          "menu-revenue-other-list",
+        );
+
+
+      /**
+       * Clear previous rendering.
+       */
+      if (
+        ranking
+      ) {
+        ranking.replaceChildren();
+      }
+
+
+      if (
+        otherList
+      ) {
+        otherList.replaceChildren();
+      }
+
+
+      /**
+       * Total revenue.
+       */
+      setText(
+        "menu-revenue-total",
+
+        currency.format(
+          data.revenue,
+        ),
+      );
+
+
+      /**
+       * No sales.
+       */
+      if (
+        data.revenue <= 0 ||
+        data.menuRevenue.length === 0
+      ) {
+
+        if (
+          chart
+        ) {
+          chart.style.background =
+            "#e4e9e6";
+        }
+
+
+        if (
+          ranking
+        ) {
+
+          const empty =
+            document.createElement(
+              "div",
+            );
+
+
+          empty.className =
+            "sales-empty";
+
+
+          empty.textContent =
+            "No sales data for this period.";
+
+
+          ranking.append(
+            empty,
+          );
+        }
+
+
+        if (
+          otherDetails
+        ) {
+          otherDetails.style.display =
+            "none";
+        }
+
+
+        return;
+      }
+
+
+      if (
+        otherDetails
+      ) {
+        otherDetails.style.display =
+          "";
+      }
+
+
+      /**
+       * Clean bad menu rows.
+       */
+      const validRows =
+        data.menuRevenue
+          .filter(
+            (item) =>
+              item &&
+              typeof item === "object",
+          )
+          .map(
+            (item) => ({
+
+              name:
+                item.name ??
+                "Unknown menu item",
+
+              revenue:
+                safeNumber(
+                  item.revenue,
+                ),
+            }),
+          );
+
+
+      /**
+       * If everything was invalid,
+       * show empty state.
+       */
+      if (
+        validRows.length === 0
+      ) {
+
+        if (
+          ranking
+        ) {
+
+          const empty =
+            document.createElement(
+              "div",
+            );
+
+
+          empty.className =
+            "sales-empty";
+
+
+          empty.textContent =
+            "No sales data for this period.";
+
+
+          ranking.append(
+            empty,
+          );
+        }
+
+
+        return;
+      }
+
+
+      const topItems =
+        validRows.slice(
+          0,
+          5,
+        );
+
+
+      const otherItems =
+        validRows.slice(
+          5,
+        );
+
+
+      const otherRevenue =
+        otherItems.reduce(
+          (
+            total,
+            item,
+          ) =>
+            total +
+            item.revenue,
+          0,
+        );
+
+
+      /**
+       * Chart data.
+       */
+      const chartItems = [
+        ...topItems,
+      ];
+
+
+      if (
+        otherRevenue > 0
+      ) {
+
+        chartItems.push({
+          name:
+            "Other menu items",
+
+          revenue:
+            otherRevenue,
+        });
+      }
+
+
+      const chartColours = [
+        ...menuColours,
+        "#dfe5df",
+      ];
+
+
+      let position =
+        0;
+
+
+      const segments =
+        chartItems.map(
+          (
+            item,
+            index,
+          ) => {
+
+            const start =
+              position;
+
+
+            if (
+              data.revenue > 0
+            ) {
+
+              position +=
+                (
+                  item.revenue /
+                  data.revenue
+                ) *
+                360;
+            }
+
+
+            return (
+              `${
+                chartColours[index] ??
+                "#dfe5df"
+              } ` +
+              `${start.toFixed(2)}deg ` +
+              `${position.toFixed(2)}deg`
+            );
+          },
+        );
+
+
+      if (
+        chart &&
+        segments.length > 0
+      ) {
+
+        chart.style.background =
+          `conic-gradient(
+            from -90deg,
+            ${segments.join(", ")}
+          )`;
+      }
+
+
+      /**
+       * Top 5 ranking.
+       */
+      if (
+        ranking
+      ) {
+
+        topItems.forEach(
+          (
+            item,
+            index,
+          ) => {
+
+            const row =
+              document.createElement(
+                "div",
+              );
+
+
+            row.className =
+              "menu-revenue-row";
+
+
+            const dot =
+              document.createElement(
+                "span",
+              );
+
+
+            dot.className =
+              "menu-revenue-dot";
+
+
+            dot.style.background =
+              menuColours[index] ??
+              "#dfe5df";
+
+
+            const name =
+              document.createElement(
+                "span",
+              );
+
+
+            name.className =
+              "menu-revenue-name";
+
+
+            name.textContent =
+              `${index + 1}. ${item.name}`;
+
+
+            const value =
+              document.createElement(
+                "span",
+              );
+
+
+            value.className =
+              "menu-revenue-value";
+
+
+            const percentage =
+              data.revenue > 0
+                ? (
+                    item.revenue /
+                    data.revenue
+                  ) *
+                  100
+                : 0;
+
+
+            const strong =
+              document.createElement(
+                "strong",
+              );
+
+
+            strong.textContent =
+              currency.format(
+                item.revenue,
+              );
+
+
+            const percentageElement =
+              document.createElement(
+                "span",
+              );
+
+
+            percentageElement.textContent =
+              `${safeNumber(
+                percentage,
+              ).toFixed(1)}%`;
+
+
+            value.append(
+              strong,
+              percentageElement,
+            );
+
+
+            row.append(
+              dot,
+              name,
+              value,
+            );
+
+
+            ranking.append(
+              row,
+            );
+          },
+        );
+      }
+
+
+      /**
+       * Other menu items.
+       */
+      if (
+        otherSummary
+      ) {
+
+        otherSummary.textContent =
+          `Other ${
+            otherItems.length
+          } menu item${
+            otherItems.length === 1
+              ? ""
+              : "s"
+          } · ${
+            currency.format(
+              otherRevenue,
+            )
+          }`;
+      }
+
+
+      if (
+        otherList
+      ) {
+
+        otherItems.forEach(
+          (item) => {
+
+            const row =
+              document.createElement(
+                "div",
+              );
+
+
+            row.className =
+              "menu-revenue-other-item";
+
+
+            const name =
+              document.createElement(
+                "span",
+              );
+
+
+            name.textContent =
+              item.name;
+
+
+            const value =
+              document.createElement(
+                "strong",
+              );
+
+
+            value.textContent =
+              currency.format(
+                item.revenue,
+              );
+
+
+            row.append(
+              name,
+              value,
+            );
+
+
+            otherList.append(
+              row,
+            );
+          },
+        );
+      }
+    }
+
+
+    /**
+     * --------------------------------------------------
+     * RENDER SALES PERIOD
+     * --------------------------------------------------
+     */
+
+    function render(
+      period,
+    ) {
+
+      /**
+       * Missing period becomes an
+       * empty dashboard instead of crashing.
+       */
+      const data =
+        normalisePeriod(
+          salesData?.[period],
+        );
+
+
+      setText(
+        "sales-total",
+
+        currency.format(
+          data.revenue,
+        ),
+      );
+
+
+      setText(
+        "sales-items",
+
+        integer.format(
+          data.itemsSold,
+        ),
+      );
+
+
+      setText(
+        "sales-average",
+
+        currency.format(
+          data.averageItemValue,
+        ),
+      );
+
+
+      updateChange(
+        getElement(
+          "sales-change",
+        ),
+
+        percentageChange(
+          data.revenue,
+          data.previousRevenue,
+        ),
+      );
+
+
+      updateChange(
+        getElement(
+          "items-change",
+        ),
+
+        percentageChange(
+          data.itemsSold,
+          data.previousItemsSold,
+        ),
+      );
+
+
+      updateChange(
+        getElement(
+          "average-change",
+        ),
+
+        percentageChange(
+          data.averageItemValue,
+          data.previousAverageItemValue,
+        ),
+      );
+
+
+      const range =
+        displayRange(
+          data.startDate,
+          data.endDate,
+        );
+
+
+      setText(
+        "sales-date-range",
+
+        range
+          ? `Showing ${range}`
+          : "No sales data available",
+      );
+
+
+      setText(
+        "dashboard-total-revenue",
+
+        currency.format(
+          data.revenue,
+        ),
+      );
+
+
+      setText(
+        "dashboard-total-caption",
+
+        range ||
+        "No sales data available",
+      );
+
+
+      renderMenuRevenue(
+        data,
+      );
+    }
+
+
+    /**
+     * --------------------------------------------------
+     * FORECAST
+     * --------------------------------------------------
+     */
+
+    setText(
+      "dashboard-sales-forecast",
+
+      currency.format(
+        forecast.revenue,
+      ),
+    );
+
+
+    if (
+      forecast.days > 0
+    ) {
+
+      const forecastRange =
+        displayRange(
+          forecast.startDate,
+          forecast.endDate,
+        );
+
+
+      setText(
+        "dashboard-forecast-caption",
+
+        `${integer.format(
+          forecast.days,
+        )} saved future prediction${
+          forecast.days === 1
+            ? ""
+            : "s"
+        }${
+          forecastRange
+            ? ` · ${forecastRange}`
+            : ""
+        }`,
+      );
+
+    } else {
+
+      setText(
+        "dashboard-forecast-caption",
+        "No saved future predictions",
+      );
+    }
+
+
+    /**
+     * --------------------------------------------------
+     * PERIOD BUTTONS
+     * --------------------------------------------------
+     */
+
+    document
+      .querySelectorAll(
+        "[data-sales-period]",
+      )
+      .forEach(
+        (button) => {
+
+          button.addEventListener(
+            "click",
+            () => {
+
+              document
+                .querySelectorAll(
+                  "[data-sales-period]",
+                )
+                .forEach(
+                  (candidate) => {
+
+                    const active =
+                      candidate ===
+                      button;
+
+
+                    candidate
+                      .classList
+                      .toggle(
+                        "active",
+                        active,
+                      );
+
+
+                    candidate
+                      .setAttribute(
+                        "aria-pressed",
+                        String(active),
+                      );
+                  },
+                );
+
+
+              render(
+                button.dataset
+                  .salesPeriod ??
+                "7",
+              );
+            },
+          );
+        },
+      );
+
+
+    /**
+     * --------------------------------------------------
+     * TODAY
+     * --------------------------------------------------
+     */
+
+    const todayDate =
+      parseDisplayDate(
+        dashboard.today,
+      );
+
+
+    if (
+      todayDate
+    ) {
+
+      setText(
+        "sales-today-date",
+
+        longDate.format(
+          todayDate,
+        ),
+      );
+
+    } else {
+
+      setText(
+        "sales-today-date",
+        "Today",
+      );
+    }
+
+
+    /**
+     * --------------------------------------------------
+     * DEFAULT PERIOD
+     * --------------------------------------------------
+     */
+
+    render(
+      "7",
+    );
+
+  })();
+
+</script>
+
+
+<%- include("partials/footer") %>

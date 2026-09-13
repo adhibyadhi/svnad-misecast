@@ -138,3 +138,66 @@ export async function buildMLInputForDate(dateString) {
 
   return mlInput;
 }
+
+/**
+ * Convert the FastAPI response into the
+ * structure required by PredictedSales.
+ *
+ * FastAPI only needs to return:
+ *
+ * menu_1_amount
+ * menu_2_amount
+ * ...
+ * menu_15_amount
+ *
+ * The menu names already come from mlInput.
+ */
+export function buildPredictionDocument(mlInput, apiResult) {
+  const prediction = {};
+
+  for (let i = 1; i <= 15; i++) {
+    const menuKey = `menu_${i}`;
+
+    const amountKey = `menu_${i}_amount`;
+
+    /*
+     * Menu name comes from the exact
+     * ML input that was sent to FastAPI.
+     */
+    const menuName = mlInput[menuKey];
+
+    /*
+     * Predicted amount comes from FastAPI.
+     */
+    const amount = Number(apiResult[amountKey]);
+
+    /*
+     * Make sure menu exists.
+     */
+    if (!menuName) {
+      throw new Error(`Missing ${menuKey} in ML input.`);
+    }
+
+    /*
+     * Make sure FastAPI returned
+     * a valid whole-number prediction.
+     */
+    if (!Number.isInteger(amount) || amount < 0) {
+      throw new Error(`FastAPI returned an invalid value for ${amountKey}.`);
+    }
+
+    /*
+     * Build:
+     *
+     * menu_1
+     * menu_1_amount
+     *
+     * ...
+     */
+    prediction[menuKey] = menuName;
+
+    prediction[amountKey] = amount;
+  }
+
+  return prediction;
+}
