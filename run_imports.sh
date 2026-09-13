@@ -2,7 +2,7 @@
 set -euo pipefail
 
 API="http://127.0.0.1:3000/api/imports"
-SOURCE_DIR="/data"
+SOURCE_DIR="./data"
 GENERATED_DIR="../data/mongo_import"
 
 import_file() {
