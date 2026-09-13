@@ -1,0 +1,131 @@
+<%- include("../partials/header") %>
+
+<a
+  href="/menus/<%= encodeURIComponent(item.menu_item_id) %>"
+  class="btn btn-outline-secondary mb-4"
+>
+  Back to <%= item.name %>
+</a>
+
+<h1 class="h2">Add variant</h1>
+<p class="text-secondary">Parent menu item: <%= item.name %></p>
+
+<% if (errorMessage) { %>
+  <div class="alert alert-danger" role="alert">
+    <%= errorMessage %>
+  </div>
+<% } %>
+
+<form
+  action="/menus/<%= encodeURIComponent(item.menu_item_id) %>/variants"
+  method="post"
+  class="card"
+>
+  <div class="card-body p-4">
+    <div class="row g-3">
+      <div class="col-md-8">
+        <label for="menu_variant_name" class="form-label">Variant name</label>
+        <input
+          id="menu_variant_name"
+          name="menu_variant_name"
+          class="form-control"
+          maxlength="200"
+          value="<%= values.menu_variant_name %>"
+          required
+        />
+      </div>
+
+      <div class="col-md-4">
+        <label for="portion_size" class="form-label">Portion size</label>
+        <input
+          id="portion_size"
+          name="portion_size"
+          class="form-control"
+          maxlength="100"
+          value="<%= values.portion_size %>"
+          required
+        />
+        <div class="form-text">Use the same size labels as your menu data.</div>
+      </div>
+
+      <div class="col-md-6">
+        <label for="sale_price_aud" class="form-label">Sale price (AUD)</label>
+        <input
+          id="sale_price_aud"
+          name="sale_price_aud"
+          type="number"
+          min="0"
+          step="any"
+          class="form-control"
+          value="<%= values.sale_price_aud %>"
+          required
+        />
+      </div>
+
+      <div class="col-md-6">
+        <label for="estimated_food_cost_aud" class="form-label">
+          Estimated food cost (AUD)
+        </label>
+        <input
+          id="estimated_food_cost_aud"
+          name="estimated_food_cost_aud"
+          type="number"
+          min="0"
+          step="any"
+          class="form-control"
+          value="<%= values.estimated_food_cost_aud %>"
+        />
+        <div class="form-text">Leave blank if unknown.</div>
+      </div>
+
+      <div class="col-md-6">
+        <label for="active" class="form-label">Status</label>
+        <select id="active" name="active" class="form-select" required>
+          <option value="false" <%= values.active === "false" ? "selected" : "" %>>
+            Inactive
+          </option>
+          <option value="true" <%= values.active === "true" ? "selected" : "" %>>
+            Active
+          </option>
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label for="demand_model_training_eligible" class="form-label">
+          Eligible for model training
+        </label>
+        <select
+          id="demand_model_training_eligible"
+          name="demand_model_training_eligible"
+          class="form-select"
+          required
+        >
+          <option value="false" <%= values.demand_model_training_eligible === "false" ? "selected" : "" %>>
+            No
+          </option>
+          <option value="true" <%= values.demand_model_training_eligible === "true" ? "selected" : "" %>>
+            Yes
+          </option>
+        </select>
+      </div>
+
+      <div class="col-12">
+        <label for="exclusion_reason" class="form-label">Exclusion reason</label>
+        <textarea
+          id="exclusion_reason"
+          name="exclusion_reason"
+          class="form-control"
+          maxlength="500"
+          rows="2"
+        ><%= values.exclusion_reason %></textarea>
+        <div class="form-text">
+          Required when training eligibility is No.
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-dark mt-4">Create variant</button>
+  </div>
+</form>
+
+<%- include("../partials/footer") %>

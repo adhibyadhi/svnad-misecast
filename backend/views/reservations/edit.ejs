@@ -1,0 +1,86 @@
+<%- include("../partials/header") %>
+
+<h1 class="h2 mb-2">Edit reservation totals</h1>
+
+<p class="text-secondary mb-4">
+  <%= form.date %> · <%= form.service_period %>
+</p>
+
+<% if (errorMessage) { %>
+  <div class="alert alert-danger" role="alert">
+    <p class="mb-2"><%= errorMessage %></p>
+
+    <a
+      class="alert-link"
+      href="/reservations/<%= form.id %>/edit"
+    >
+      Reload latest values and discard these unsaved edits
+    </a>
+  </div>
+<% } %>
+
+<% if (form.is_synthetic) { %>
+  <div class="alert alert-info">
+    This is a synthetic record. Editing it keeps that designation.
+  </div>
+<% } %>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post" action="/reservations/<%= form.id %>/edit">
+      <input
+        type="hidden"
+        name="revision"
+        value="<%= form.revision %>"
+      />
+
+      <div class="row g-3">
+        <%
+          const numberFields = [
+            ["bookings_count", "Booking groups", false],
+            ["reserved_covers", "Reserved covers before cancellations", false],
+            ["cancelled_covers", "Cancelled covers", false],
+            ["confirmed_covers", "Confirmed covers", true],
+          ];
+        %>
+
+        <% for (const [name, label, required] of numberFields) { %>
+          <div class="col-md-6">
+            <label for="<%= name %>" class="form-label">
+              <%= label %><%= required ? " (required)" : "" %>
+            </label>
+
+            <input
+              id="<%= name %>"
+              class="form-control"
+              type="number"
+              name="<%= name %>"
+              min="0"
+              step="1"
+              value="<%= form[name] %>"
+              <% if (required) { %>required<% } %>
+            />
+          </div>
+        <% } %>
+      </div>
+
+      <p class="small text-secondary mt-3">
+        Review all totals before saving. Saving records today's
+        Melbourne date as the snapshot date.
+        Leave optional values blank when unknown.
+      </p>
+
+      <div class="d-flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-primary">
+          Save changes
+        </button>
+
+        <a href="/reservations" class="btn btn-outline-secondary">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include("../partials/footer") %>

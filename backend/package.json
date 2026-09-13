@@ -1,0 +1,25 @@
+{
+  "name": "misecast",
+  "version": "1.0.0",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "check:models": "node scripts/checkModelValidation.js",
+    "check:indexes": "node scripts/checkModelIndexes.js",
+    "start": "node --env-file-if-exists=.env server.js",
+    "check:app": "node --env-file=.env scripts/checkApplication.js",
+    "check:transactions": "node --env-file=.env scripts/checkTransactions.js",
+    "import:worker": "node --env-file=.env scripts/runImportWorker.js",
+    "check:import-recovery": "node scripts/checkImportRecovery.js"
+  },
+  "type": "module",
+  "dependencies": {
+    "bootstrap": "^5.3.8",
+    "csv-parse": "^7.0.2",
+    "decimal.js": "^10.6.0",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "mongoose": "^9.10.0"
+  }
+}

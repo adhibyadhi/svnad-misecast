@@ -1,0 +1,150 @@
+<%- include("../partials/header") %>
+
+<a href="/menus" class="btn btn-outline-secondary mb-4">
+  Back to menu items
+</a>
+
+<h1 class="h2">Add menu item</h1>
+
+<p class="text-secondary">
+  Create a parent dish. You can add its individual variants afterward.
+</p>
+
+<% if (errorMessage) { %>
+  <div class="alert alert-danger" role="alert">
+    <%= errorMessage %>
+  </div>
+<% } %>
+
+<form action="/menus" method="post" class="card">
+  <div class="card-body p-4">
+    <div class="mb-3">
+      <label for="menu_item_name_clean" class="form-label">
+        Menu item name
+      </label>
+
+      <input
+        id="menu_item_name_clean"
+        name="menu_item_name_clean"
+        type="text"
+        class="form-control"
+        maxlength="200"
+        value="<%= values.menu_item_name_clean %>"
+        required
+      />
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label for="category" class="form-label">Category</label>
+
+        <input
+          id="category"
+          name="category"
+          type="text"
+          class="form-control"
+          maxlength="100"
+          value="<%= values.category %>"
+        />
+      </div>
+
+      <div class="col-md-6">
+        <label for="active" class="form-label">Status</label>
+
+        <select id="active" name="active" class="form-select" required>
+          <option value="false" <%= values.active === "false" ? "selected" : "" %>>
+            Inactive
+          </option>
+          <option value="true" <%= values.active === "true" ? "selected" : "" %>>
+            Active
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <fieldset class="mb-4">
+      <legend class="h5">Prices and estimated food costs</legend>
+
+      <p id="money-help" class="text-secondary small">
+        Enter amounts in AUD. Leave unavailable values blank.
+      </p>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="sale_price_aud_small" class="form-label">
+            Small sale price
+          </label>
+
+          <input
+            id="sale_price_aud_small"
+            name="sale_price_aud_small"
+            type="number"
+            min="0"
+            step="any"
+            class="form-control"
+            aria-describedby="money-help"
+            value="<%= values.sale_price_aud_small %>"
+          />
+        </div>
+
+        <div class="col-md-6">
+          <label for="sale_price_aud_large" class="form-label">
+            Large sale price
+          </label>
+
+          <input
+            id="sale_price_aud_large"
+            name="sale_price_aud_large"
+            type="number"
+            min="0"
+            step="any"
+            class="form-control"
+            aria-describedby="money-help"
+            value="<%= values.sale_price_aud_large %>"
+          />
+        </div>
+
+        <div class="col-md-6">
+          <label for="estimated_food_cost_aud_small" class="form-label">
+            Small estimated food cost
+          </label>
+
+          <input
+            id="estimated_food_cost_aud_small"
+            name="estimated_food_cost_aud_small"
+            type="number"
+            min="0"
+            step="any"
+            class="form-control"
+            aria-describedby="money-help"
+            value="<%= values.estimated_food_cost_aud_small %>"
+          />
+        </div>
+
+        <div class="col-md-6">
+          <label for="estimated_food_cost_aud_large" class="form-label">
+            Large estimated food cost
+          </label>
+
+          <input
+            id="estimated_food_cost_aud_large"
+            name="estimated_food_cost_aud_large"
+            type="number"
+            min="0"
+            step="any"
+            class="form-control"
+            aria-describedby="money-help"
+            value="<%= values.estimated_food_cost_aud_large %>"
+          />
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-dark">Create menu item</button>
+      <a href="/menus" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </div>
+</form>
+
+<%- include("../partials/footer") %>

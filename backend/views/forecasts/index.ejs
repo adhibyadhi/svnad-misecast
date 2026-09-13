@@ -1,0 +1,199 @@
+<%- include("../partials/header") %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <h1 class="h2 mb-2">Forecast readiness</h1>
+
+    <p class="text-secondary mb-0">
+      Sales coverage from <%= report.history_window.date_start %>
+      to <%= report.history_window.date_end %>.
+      Dates use <%= report.timezone %>.
+    </p>
+  </div>
+
+  <a href="/forecasts" class="btn btn-outline-primary">
+    Reload report
+  </a>
+</div>
+
+<div class="alert alert-warning">
+  Predictions are unavailable until the trained model and its
+  input requirements have been verified.
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="h6 text-secondary">Imported sales records</h2>
+        <p class="h3 mb-0">
+          <%= report.all_imported_sales.record_count.toLocaleString("en-AU") %>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-lg-3">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="h6 text-secondary">Eligible active variants</h2>
+        <p class="h3 mb-0"><%= report.eligible_variant_count %></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-lg-3">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="h6 text-secondary">With recent records</h2>
+        <p class="h3 mb-0">
+          <%= report.variants_with_recent_records %>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-lg-3">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="h6 text-secondary">Without recent records</h2>
+        <p class="h3 mb-0">
+          <%= report.variants_without_recent_records %>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h2 class="h5">Imported history</h2>
+
+    <% if (report.all_imported_sales.record_count > 0) { %>
+      <p class="mb-2">
+        <strong>Date range:</strong>
+        <%= report.all_imported_sales.first_date %>
+        to <%= report.all_imported_sales.last_date %>
+      </p>
+
+      <p class="mb-0">
+        <strong>Synthetic records:</strong>
+        <%= report.all_imported_sales.synthetic_record_count.toLocaleString("en-AU") %>
+      </p>
+    <% } else { %>
+      <p class="mb-0 text-secondary">
+        No historical sales have been imported for this restaurant.
+      </p>
+    <% } %>
+  </div>
+</div>
+
+<% if (report.variants.length === 0) { %>
+  <div class="alert alert-info">
+    No active, training-eligible variants with active parent menu items
+    were found. Check your menu setup.
+  </div>
+<% } else { %>
+  <div class="card shadow-sm mb-4">
+    <div class="table-responsive">
+      <table class="table table-striped align-middle mb-0">
+        <caption class="px-3">
+          Sales coverage by menu variant and service period.
+          Days with records do not establish complete daily sales.
+        </caption>
+
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Menu variant</th>
+            <th scope="col">Recent history</th>
+            <th scope="col">Coverage by service</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% for (const variant of report.variants) { %>
+            <tr>
+              <th scope="row" class="fw-normal">
+                <a href="/menus/<%= encodeURIComponent(variant.menu_item_id) %>">
+                  <%= variant.menu_variant_name %>
+                </a>
+
+                <div class="small text-secondary">
+                  <%= variant.menu_variant_id %>
+                  · <%= variant.portion_size ?? "Unspecified size" %>
+                </div>
+              </th>
+
+              <td>
+                <span
+                  class="badge <%= variant.has_recent_records
+                    ? 'text-bg-info'
+                    : 'text-bg-warning' %>"
+                >
+                  <%= variant.has_recent_records
+                    ? "Records present"
+                    : "No recent records" %>
+                </span>
+              </td>
+
+              <td>
+                <% if (variant.history_by_service.length === 0) { %>
+                  <span class="text-secondary">
+                    No records in the inspection window.
+                  </span>
+                <% } else { %>
+                  <% for (const history of variant.history_by_service) { %>
+                    <div class="mb-2">
+                      <strong>
+                        <%= history.service_period ?? "Unspecified service" %>
+                      </strong>
+
+                      <div class="small">
+                        <%= history.days_with_records %> of
+                        <%= report.history_window.calendar_days %>
+                        calendar days have records.
+                      </div>
+
+                      <div class="small text-secondary">
+                        Channels:
+                        <%= history.channels_present
+                          .map((channel) => channel ?? "Unspecified")
+                          .join(", ") %>
+                      </div>
+
+                      <div class="small text-secondary">
+                        <%= history.record_count %> records;
+                        <%= history.synthetic_record_count %> synthetic;
+                        <%= history.missing_quantity_count %> missing quantity.
+                      </div>
+                    </div>
+                  <% } %>
+                <% } %>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h2 class="h5">How to interpret this report</h2>
+
+    <ul class="mb-0">
+      <% for (const limitation of report.limitations) { %>
+        <li><%= limitation %></li>
+      <% } %>
+    </ul>
+  </div>
+</div>
+
+<div class="d-flex flex-wrap gap-3 mt-4">
+  <a href="/menus">Manage menu</a>
+  <a href="/context">View daily context</a>
+  <a href="/api/forecasts/readiness">View report JSON</a>
+</div>
+
+<%- include("../partials/footer") %>

@@ -1,0 +1,278 @@
+<%- include("../partials/header") %>
+
+<%
+  const badgeClasses = {
+    fresh: "text-bg-success",
+    stale: "text-bg-warning",
+    missing: "text-bg-secondary",
+  };
+%>
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <h1 class="h2 mb-2">Daily context</h1>
+
+    <p class="text-secondary mb-1">
+      Weather, Victorian public holidays, and nearby events.
+    </p>
+
+    <p class="text-secondary mb-0">
+      <%= context.date_start %> to <%= context.date_end %>
+      · <%= context.timezone %>
+    </p>
+  </div>
+
+  <form method="post" action="/context/refresh">
+    <button type="submit" class="btn btn-primary">
+      Refresh all
+    </button>
+  </form>
+</div>
+
+<% if (refreshResults.length > 0) { %>
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h5">Refresh results</h2>
+
+      <ul class="list-group list-group-flush">
+        <% for (const result of refreshResults) { %>
+          <li class="list-group-item px-0">
+            <span
+              class="badge <%= result.success
+                ? 'text-bg-success'
+                : 'text-bg-warning' %> me-2"
+            >
+              <%= result.success ? "Ready" : "Needs attention" %>
+            </span>
+
+            <strong><%= result.label %>:</strong>
+            <%= result.message %>
+          </li>
+        <% } %>
+      </ul>
+    </div>
+  </div>
+<% } %>
+
+<div class="alert alert-info">
+  Unknown values appear as “Unknown”.
+  Event counts represent eligible provider listings.
+  Weather details are available on the
+  <a href="/weather" class="alert-link">Weather page</a>.
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-striped align-middle mb-0">
+      <caption class="px-3">
+        Saved context for the next 14 days in Melbourne.
+        This page does not yet contain demand predictions.
+      </caption>
+
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Weather</th>
+          <th scope="col">Public holiday</th>
+          <th scope="col">Nearby events</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% for (const day of context.days) { %>
+          <tr>
+            <th scope="row" class="fw-normal text-nowrap">
+              <div class="fw-semibold"><%= day.date %></div>
+
+              <div class="small text-secondary">
+                <%= day.day_of_week %>
+              </div>
+
+              <% if (day.is_weekend) { %>
+                <span class="badge text-bg-light border mt-1">
+                  Weekend
+                </span>
+              <% } %>
+            </th>
+
+            <td>
+              <span class="badge <%= badgeClasses[day.weather.status] %>">
+                <%= day.weather.status %>
+              </span>
+
+              <div class="small mt-2">
+                <%= day.weather.usable
+                  ? "Forecast available"
+                  : "Refresh weather to use this date" %>
+              </div>
+            </td>
+
+            <td>
+              <span
+                class="badge <%= badgeClasses[day.public_holiday.status] %>"
+              >
+                <%= day.public_holiday.status %>
+              </span>
+
+              <div class="mt-2">
+                <% if (day.public_holiday.is_public_holiday === null) { %>
+                  <span class="text-secondary">Unknown</span>
+                <% } else if (day.public_holiday.is_public_holiday) { %>
+                  <%= day.public_holiday.names.join(", ") %>
+                <% } else { %>
+                  No public holiday listed
+                <% } %>
+              </div>
+            </td>
+
+            <td>
+              <span
+                class="badge <%= badgeClasses[day.local_events.status] %>"
+              >
+                <%= day.local_events.status %>
+              </span>
+
+              <div class="mt-2">
+                <% if (day.local_events.count_usable) { %>
+                  <strong>
+                    <%= day.local_events.provider_event_count %>
+                  </strong>
+                  eligible listings
+                <% } else { %>
+                  <span class="text-secondary">
+                    Usable count: Unknown
+                  </span>
+
+                  <div class="small text-secondary">
+                    <%= day.local_events.saved_listing_count %>
+                    listings in saved results
+                  </div>
+                <% } %>
+              </div>
+
+              <% if (day.local_events.truncated) { %>
+                <div class="small text-warning-emphasis mt-1">
+                  Search page limit reached
+                </div>
+              <% } %>
+
+              <% if (day.local_events.excluded_listing_count > 0) { %>
+                <div class="small text-secondary mt-1">
+                  Some listings were excluded from the search results.
+                </div>
+              <% } %>
+
+              <% if (day.local_events.listings.length > 0) { %>
+                <details class="mt-2">
+                  <summary class="small">View saved events</summary>
+
+                  <ul class="small mt-2 mb-0 ps-3">
+                    <% for (const event of day.local_events.listings) { %>
+                      <li class="mb-2">
+                        <strong><%= event.event_name %></strong>
+
+                        <div class="text-secondary">
+                          <%= event.start_time
+                            ? event.start_time.slice(0, 5)
+                            : "Time unavailable" %>
+                          · <%= event.venue_name ?? "Unknown venue" %>
+                        </div>
+                      </li>
+                    <% } %>
+                  </ul>
+                </details>
+              <% } %>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="d-flex flex-wrap gap-3 mt-4">
+  <a href="/weather">Weather details</a>
+  <a href="/holidays">Public holidays</a>
+  <a href="/events">Event details</a>
+  <a href="/api/context">View JSON</a>
+</div>
+
+<div class="card shadow-sm mt-4">
+  <div class="card-body">
+    <h2 class="h4 mb-2">Confirmed reservation covers</h2>
+
+    <p class="text-secondary">
+      Real snapshots reviewed today are usable.
+      Older snapshots need review; missing values remain unknown.
+    </p>
+
+    <a href="/reservations" class="btn btn-outline-primary mb-3">
+      Manage reservations
+    </a>
+
+    <div class="table-responsive">
+      <table class="table table-striped align-middle mb-0">
+        <caption>
+          Reservation totals by date and service period.
+          Saved covers may be unavailable for forecasting.
+        </caption>
+
+        <thead>
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Service</th>
+            <th scope="col">Saved covers</th>
+            <th scope="col">Usable covers</th>
+            <th scope="col">Snapshot</th>
+            <th scope="col">Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% for (const day of context.days) { %>
+            <% if (!day.reservations.service_periods_known) { %>
+              <tr>
+                <td><%= day.date %></td>
+                <td colspan="5" class="text-secondary">
+                  Service periods are not configured yet.
+                  Import sales or add reservation totals.
+                </td>
+              </tr>
+            <% } else { %>
+              <% for (const reservation of day.reservations.by_service) { %>
+                <tr>
+                  <td class="text-nowrap"><%= day.date %></td>
+                  <td><%= reservation.service_period %></td>
+
+                  <td>
+                    <%= reservation.saved_confirmed_covers ?? "Unknown" %>
+                  </td>
+
+                  <td class="fw-semibold">
+                    <%= reservation.confirmed_reservation_covers ?? "Unknown" %>
+                  </td>
+
+                  <td class="text-nowrap">
+                    <%= reservation.data_snapshot_date ?? "—" %>
+                  </td>
+
+                  <td>
+                    <span
+                      class="badge <%= reservation.usable
+                        ? 'text-bg-success'
+                        : 'text-bg-warning' %>"
+                    >
+                      <%= reservation.status.replaceAll("_", " ") %>
+                    </span>
+                  </td>
+                </tr>
+              <% } %>
+            <% } %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include("../partials/footer") %>

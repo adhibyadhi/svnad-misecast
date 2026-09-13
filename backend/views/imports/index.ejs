@@ -1,0 +1,158 @@
+<%- include("../partials/header") %>
+
+<h1 class="h2 mb-2">Import data</h1>
+
+<p class="text-secondary mb-4">
+  Choose the type of data, select your file, and upload.
+  Processing starts automatically after the upload is accepted.
+</p>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <form
+      id="import-form"
+      data-maximum-file-bytes="<%= maximumFileBytes %>"
+    >
+      <div class="mb-3">
+        <label for="import-entity" class="form-label">
+          What are you uploading?
+        </label>
+
+        <select
+          id="import-entity"
+          class="form-select"
+          aria-describedby="import-entity-help"
+          required
+        >
+          <option value="">Choose a data type</option>
+
+          <% for (const option of importOptions) { %>
+            <option value="<%= option.value %>">
+              <%= option.label %>
+            </option>
+          <% } %>
+        </select>
+
+        <div id="import-entity-help" class="form-text">
+          Select the type matching the contents of your file.
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="import-file" class="form-label">
+          Select your file
+        </label>
+
+        <input
+          id="import-file"
+          class="form-control"
+          type="file"
+          accept=".csv,.json"
+          aria-describedby="import-file-help"
+          required
+        />
+
+        <div id="import-file-help" class="form-text">
+          CSV or JSON, up to
+          <%= maximumFileBytes / (1024 * 1024) %> MiB.
+          CSV files must use semicolons and the expected column names.
+        </div>
+      </div>
+
+      <button id="import-submit" class="btn btn-primary" type="submit">
+        Upload
+      </button>
+    </form>
+  </div>
+</div>
+
+<div
+  id="import-status"
+  class="alert d-none"
+  role="status"
+  aria-live="polite"
+></div>
+
+<section
+  id="import-job-panel"
+  class="card shadow-sm d-none"
+  aria-labelledby="import-job-heading"
+>
+  <div class="card-body">
+    <h2 id="import-job-heading" class="h5">Import progress</h2>
+
+    <p id="import-job-description" class="text-secondary"></p>
+
+    <p>
+      <strong>Status:</strong>
+      <span id="import-job-status" class="badge text-bg-secondary">
+        Waiting
+      </span>
+    </p>
+
+    <p id="import-job-summary" role="status" aria-live="polite"></p>
+
+    <div class="row g-3 mb-3">
+      <% for (const [name, label] of [
+        ["processed", "Processed"],
+        ["inserted", "Inserted"],
+        ["updated", "Updated"],
+        ["skipped", "Skipped"],
+        ["failed", "Failed"],
+      ]) { %>
+        <div class="col-6 col-md">
+          <div class="border rounded p-3 h-100">
+            <div class="small text-secondary"><%= label %></div>
+            <div id="import-count-<%= name %>" class="h4 mb-0">0</div>
+          </div>
+        </div>
+      <% } %>
+    </div>
+
+    <button
+      id="import-check-status"
+      class="btn btn-outline-primary"
+      type="button"
+    >
+      Check status now
+    </button>
+
+    <div id="import-errors-panel" class="mt-4 d-none">
+      <h3 class="h5">Rows needing attention</h3>
+
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th scope="col">Row</th>
+              <th scope="col">Problem</th>
+              <th scope="col">Details</th>
+            </tr>
+          </thead>
+
+          <tbody id="import-errors-body"></tbody>
+        </table>
+      </div>
+
+      <p id="import-errors-status" class="small text-secondary"></p>
+
+      <button
+        id="import-more-errors"
+        class="btn btn-outline-secondary d-none"
+        type="button"
+      >
+        Load more errors
+      </button>
+    </div>
+  </div>
+</section>
+
+<noscript>
+  <div class="alert alert-warning">
+    Enable JavaScript to upload files through this page.
+  </div>
+</noscript>
+
+<script src="/js/imports.js" defer></script>
+
+<%- include("../partials/footer") %>

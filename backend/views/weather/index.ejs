@@ -1,0 +1,89 @@
+<%- include("../partials/header") %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <h1 class="h2">Melbourne weather</h1>
+    <p class="text-secondary mb-1">
+      Daily forecasts in Melbourne local time.
+    </p>
+    <p class="small text-secondary">
+      Forecast coordinates: <%= coordinates %>
+    </p>
+  </div>
+
+  <form action="/weather/refresh" method="post">
+    <button class="btn btn-dark" type="submit">Refresh weather</button>
+  </form>
+</div>
+
+<% if (errorMessage) { %>
+  <div class="alert alert-danger" role="alert">
+    <%= errorMessage %>
+  </div>
+<% } %>
+
+<% if (retrievedLabel) { %>
+  <p>
+    Last successful retrieval: <strong><%= retrievedLabel %></strong>
+    <span class="badge <%= stale ? 'text-bg-warning' : 'text-bg-success' %>">
+      <%= stale ? "Refresh needed" : "Within refresh interval" %>
+    </span>
+  </p>
+<% } %>
+
+<p class="small text-secondary">
+  Successful forecasts are saved for use between refreshes.
+  Refresh reuses data retrieved within the last three hours on the same day.
+</p>
+
+<% if (rows.length === 0) { %>
+  <div class="alert alert-secondary">
+    No saved upcoming forecast is available. Select Refresh weather.
+  </div>
+<% } else { %>
+  <div class="table-responsive bg-white border rounded">
+    <table class="table table-striped align-middle mb-0">
+      <caption class="visually-hidden">
+        Daily weather forecasts for the configured Melbourne location
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Condition</th>
+          <th scope="col">Min °C</th>
+          <th scope="col">Max °C</th>
+          <th scope="col">Mean °C</th>
+          <th scope="col">Precipitation chance %</th>
+          <th scope="col">Rainfall mm</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const row of rows) { %>
+          <tr>
+            <th scope="row"><%= row.date %></th>
+            <td><%= row.condition ?? "Unavailable" %></td>
+            <td><%= row.minimum_temperature_c ?? "—" %></td>
+            <td><%= row.maximum_temperature_c ?? "—" %></td>
+            <td><%= row.average_temperature_c ?? "—" %></td>
+            <td><%= row.rain_probability_pct ?? "—" %></td>
+            <td><%= row.rainfall_mm ?? "—" %></td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+
+<p class="small text-secondary mt-3">
+  Precipitation chance is the maximum daily probability supplied by the provider.
+  Forecasts are predictions, not observed weather.
+</p>
+
+<p class="small">
+  Weather data by
+  <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">
+    Open-Meteo
+  </a>.
+</p>
+
+<%- include("../partials/footer") %>

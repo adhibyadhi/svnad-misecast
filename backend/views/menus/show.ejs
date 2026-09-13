@@ -1,0 +1,151 @@
+<%- include("../partials/header") %>
+
+<a href="/menus" class="btn btn-outline-secondary mb-4">
+  Back to menu items
+</a>
+<a
+  href="/menus/<%= encodeURIComponent(item.menu_item_id) %>/edit"
+  class="btn btn-dark mb-4"
+>
+  Edit menu item
+</a>
+
+<div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+  <h1 class="h2 mb-0"><%= item.name %></h1>
+
+  <span class="badge <%= item.active ? 'text-bg-success' : 'text-bg-secondary' %>">
+    <%= item.active ? "Active" : "Inactive" %>
+  </span>
+</div>
+
+<section class="card mb-4" aria-labelledby="details-heading">
+  <div class="card-body">
+    <h2 id="details-heading" class="h5 mb-3">Item details</h2>
+
+    <dl class="row mb-0">
+      <dt class="col-sm-4">Item ID</dt>
+      <dd class="col-sm-8"><%= item.menu_item_id %></dd>
+
+      <dt class="col-sm-4">Category</dt>
+      <dd class="col-sm-8"><%= item.category %></dd>
+
+      <dt class="col-sm-4">Original name</dt>
+      <dd class="col-sm-8"><%= item.sourceName || "—" %></dd>
+
+      <dt class="col-sm-4">Source tag codes</dt>
+      <dd class="col-sm-8"><%= item.tagCodes || "—" %></dd>
+
+      <dt class="col-sm-4">Baseline lunch portions</dt>
+      <dd class="col-sm-8"><%= item.lunchPortions %></dd>
+
+      <dt class="col-sm-4">Baseline dinner portions</dt>
+      <dd class="col-sm-8"><%= item.dinnerPortions %></dd>
+    </dl>
+  </div>
+</section>
+
+<section class="mb-5" aria-labelledby="prices-heading">
+  <h2 id="prices-heading" class="h4">Parent item prices</h2>
+
+  <div class="table-responsive bg-white border rounded">
+    <table class="table mb-0">
+      <caption class="visually-hidden">
+        Stored parent prices and estimated food costs by size
+      </caption>
+
+      <thead>
+        <tr>
+          <th scope="col">Size</th>
+          <th scope="col" class="text-end">Sale price</th>
+          <th scope="col" class="text-end">Estimated food cost</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr>
+          <th scope="row">Small</th>
+          <td class="text-end"><%= item.smallPrice %></td>
+          <td class="text-end"><%= item.smallFoodCost %></td>
+        </tr>
+
+        <tr>
+          <th scope="row">Large</th>
+          <td class="text-end"><%= item.largePrice %></td>
+          <td class="text-end"><%= item.largeFoodCost %></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="variants-heading">
+  <h2 id="variants-heading" class="h4">Menu variants</h2>
+  <a
+  href="/menus/<%= encodeURIComponent(item.menu_item_id) %>/variants/new"
+  class="btn btn-dark mb-3"
+>
+  Add variant
+</a>
+
+  <% if (variants.length === 0) { %>
+    <div class="alert alert-secondary">
+      No variants are linked to this menu item yet.
+    </div>
+  <% } else { %>
+    <div class="table-responsive bg-white border rounded">
+      <table class="table table-striped align-middle mb-0">
+        <caption class="visually-hidden">
+          Variants linked to <%= item.name %>
+        </caption>
+
+        <thead>
+          <tr>
+            <th scope="col">Variant</th>
+            <th scope="col">Size</th>
+            <th scope="col" class="text-end">Price</th>
+            <th scope="col" class="text-end">Food cost</th>
+            <th scope="col" class="text-end">Gross margin</th>
+            <th scope="col">Status</th>
+            <th scope="col">Training eligible</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% for (const variant of variants) { %>
+            <tr>
+              <th scope="row">
+                <div><%= variant.name %></div>
+                <small class="text-secondary fw-normal">
+                  <%= variant.menu_variant_id %>
+                </small>
+              </th>
+
+              <td><%= variant.portionSize %></td>
+              <td class="text-end"><%= variant.salePrice %></td>
+              <td class="text-end"><%= variant.foodCost %></td>
+              <td class="text-end"><%= variant.grossMargin %></td>
+
+              <td>
+                <span class="badge <%= variant.active ? 'text-bg-success' : 'text-bg-secondary' %>">
+                  <%= variant.active ? "Active" : "Inactive" %>
+                </span>
+              </td>
+
+              <td>
+                <%= variant.trainingEligible ? "Yes" : "No" %>
+
+                <% if (variant.exclusionReason) { %>
+                  <div class="small text-secondary">
+                    <%= variant.exclusionReason %>
+                  </div>
+                <% } %>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include("../partials/footer") %>
