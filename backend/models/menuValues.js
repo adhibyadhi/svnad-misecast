@@ -23,3 +23,5 @@ export const MENU_NAMES = [
   "Hot Chocolate",
   "Still waterr",
 ];
+
+export const MENU_CATEGORIES = ["HOT_DRINK", "COLD_DRINK", "MAIN", "SIDE"];

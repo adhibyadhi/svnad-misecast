@@ -1,24 +1,5 @@
 import mongoose from "mongoose";
-
-const menuNames = [
-  "Chicken Teriyaki Bowl",
-  "Sashimi Poke Bowl",
-  "Wagyu Beef Bowl",
-  "Miso Falafel Bowl",
-  "Karaage Chicken Bowl",
-  "Tofu Bowl",
-  "Salmon Aburi Bowl",
-  "Miso soup",
-  "Bone Broth soup",
-  "Coconut water",
-  "Sparkling water",
-  "Yuzu tea",
-  "Specialty Soda",
-  "Hot Chocolate",
-  "Still waterr",
-];
-
-const menuCategories = ["HOT_DRINK", "COLD_DRINK", "MAIN", "SIDE"];
+import { MENU_NAMES, MENU_CATEGORIES } from "./menuValues.js";
 
 const menuSchema = new mongoose.Schema(
   {
@@ -37,7 +18,7 @@ const menuSchema = new mongoose.Schema(
 
       required: true,
 
-      enum: menuNames,
+      enum: MENU_NAMES,
 
       unique: true,
 
@@ -49,7 +30,7 @@ const menuSchema = new mongoose.Schema(
 
       required: true,
 
-      enum: menuCategories,
+      enum: MENU_CATEGORIES,
     },
 
     price: {
