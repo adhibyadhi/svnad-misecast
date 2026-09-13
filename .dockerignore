@@ -1,0 +1,13 @@
+backend/
+.git/
+.svnad-venv/
+ml_pipeline/sample_data/
+ml_pipeline/models/*.joblib
+ml_pipeline/models/*.json
+**/__pycache__/
+*.pyc
+.DS_Store
+pyrightconfig.json
+render.yaml
+Procfile
+README.md
