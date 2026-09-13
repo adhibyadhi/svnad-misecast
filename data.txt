@@ -1,0 +1,284 @@
+Table ml_model_input {
+ _id varchar [pk]
+
+
+ date date [not null]
+
+
+ menu_1 varchar [not null]
+ menu_1_price_after_discount decimal [not null]
+
+
+ menu_2 varchar [not null]
+ menu_2_price_after_discount decimal [not null]
+
+
+ menu_3 varchar [not null]
+ menu_3_price_after_discount decimal [not null]
+
+
+ menu_4 varchar [not null]
+ menu_4_price_after_discount decimal [not null]
+
+
+ menu_5 varchar [not null]
+ menu_5_price_after_discount decimal [not null]
+
+
+ menu_6 varchar [not null]
+ menu_6_price_after_discount decimal [not null]
+
+
+ menu_7 varchar [not null]
+ menu_7_price_after_discount decimal [not null]
+
+
+ menu_8 varchar [not null]
+ menu_8_price_after_discount decimal [not null]
+
+
+ menu_9 varchar [not null]
+ menu_9_price_after_discount decimal [not null]
+
+
+ menu_10 varchar [not null]
+ menu_10_price_after_discount decimal [not null]
+
+
+ menu_11 varchar [not null]
+ menu_11_price_after_discount decimal [not null]
+
+
+ menu_12 varchar [not null]
+ menu_12_price_after_discount decimal [not null]
+
+
+ menu_13 varchar [not null]
+ menu_13_price_after_discount decimal [not null]
+
+
+ menu_14 varchar [not null]
+ menu_14_price_after_discount decimal [not null]
+
+
+ menu_15 varchar [not null]
+ menu_15_price_after_discount decimal [not null]
+
+
+ total_reservation int [not null]
+
+
+ avg_temp decimal [not null]
+
+
+ rain boolean [not null]
+
+
+ public_holiday boolean [not null]
+
+
+ num_of_event int [not null]
+}
+
+
+Table promotion {
+ _id varchar [pk]
+
+
+ menu_item varchar [not null]
+
+
+ percentage_discount decimal [not null]
+
+
+ date date [not null]
+}
+
+
+Table weather {
+ _id varchar [pk]
+
+
+ date date [not null]
+
+
+ avg_temp decimal [not null]
+
+
+ rain boolean [not null]
+}
+
+
+
+
+Table events {
+ _id varchar [pk]
+
+
+ date date [not null]
+
+
+ num_of_event int [not null]
+}
+
+
+Table public_holiday {
+ _id varchar [pk]
+
+
+ date date [not null]
+
+
+ name varchar [not null]
+}
+
+
+Table daily_reservation {
+ _id varchar [pk]
+
+
+ date date [not null]
+
+
+ total_reservation int [not null]
+
+
+ total_people int [not null]
+}
+
+
+Table predicted_sales_from_ml {
+ _id varchar [pk]
+
+
+ menu_1 varchar [not null]
+ menu_1_amount int [not null]
+
+
+ menu_2 varchar [not null]
+ menu_2_amount int [not null]
+
+
+ menu_3 varchar [not null]
+ menu_3_amount int [not null]
+
+
+ menu_4 varchar [not null]
+ menu_4_amount int [not null]
+
+
+ menu_5 varchar [not null]
+ menu_5_amount int [not null]
+
+
+ menu_6 varchar [not null]
+ menu_6_amount int [not null]
+
+
+ menu_7 varchar [not null]
+ menu_7_amount int [not null]
+
+
+ menu_8 varchar [not null]
+ menu_8_amount int [not null]
+
+
+ menu_9 varchar [not null]
+ menu_9_amount int [not null]
+
+
+ menu_10 varchar [not null]
+ menu_10_amount int [not null]
+
+
+ menu_11 varchar [not null]
+ menu_11_amount int [not null]
+
+
+ menu_12 varchar [not null]
+ menu_12_amount int [not null]
+
+
+ menu_13 varchar [not null]
+ menu_13_amount int [not null]
+
+
+ menu_14 varchar [not null]
+ menu_14_amount int [not null]
+
+
+ menu_15 varchar [not null]
+ menu_15_amount int [not null]
+}
+
+
+Enum menu_category {
+ HOT_DRINK
+ COLD_DRINK
+ MAIN
+ SIDE
+}
+
+
+Enum menu_name {
+ MENU_1
+ MENU_2
+ MENU_3
+ MENU_4
+ MENU_5
+ MENU_6
+ MENU_7
+ MENU_8
+ MENU_9
+ MENU_10
+ MENU_11
+ MENU_12
+ MENU_13
+ MENU_14
+ MENU_15
+}
+
+
+
+
+Table menu {
+ _id varchar [pk]
+
+
+ name menu_name [not null]
+
+
+ category menu_category [not null]
+
+
+ price decimal [not null]
+}
+
+
+Table daily_sales {
+ _id varchar [pk]
+
+
+ date date [not null]
+
+
+ menu_id varchar [not null]
+
+
+ amount_sold int [not null]
+}
+
+
+Ref: daily_sales.menu_id > menu._id
+Table request_history {
+ _id varchar [pk]
+
+
+ prediction_id varchar [not null]
+
+
+ date date [not null]
+}
+
+
+Ref: request_history.prediction_id > predicted_sales_from_ml._id
