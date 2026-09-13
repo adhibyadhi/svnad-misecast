@@ -54,6 +54,26 @@ Only ingredients projected to cross their reorder point within the forecast wind
 here — an ingredient with comfortable stock for the whole window is simply absent, not
 listed with a `null`.
 
+## `expiry_waste.json`
+
+Expiry waste prediction (Section 4.4) — the mirror image of run-out prediction: instead of "when do we run out," this tracks FIFO batch-level consumption to find ingredient batches that will still have stock left over when they expire, and what that waste is likely to cost.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `batch_id` | string | The specific inventory batch at risk, e.g. `"LOT-BASE-001-1"` |
+| `ingredient_id` / `ingredient_name` | string | The ingredient in that batch |
+| `ingredient_group_code` | string | e.g. `"BASE"`, `"PROT"`, `"LEAF"` — ingredient category |
+| `expiry_date` | string (`YYYY-MM-DD`) | When this batch expires |
+| `quantity_wasted` | number | Predicted leftover, unconsumed quantity at expiry |
+| `estimated_waste_value_aud` | number | `quantity_wasted × unit_cost_aud` for this batch |
+
+Only batches predicted to have leftover stock appear here — a batch that's fully
+consumed before it expires is simply absent. Batches expiring after the forecast
+window aren't included either way, since there isn't enough visibility yet to
+call it.
+
+**Note on methodology:** this uses the model's P50 (expected) forecast, not P90. For run-out prediction, P90 (cautious/high-demand) is the safety-conscious choice — you don't want to be caught short. For waste, it's the opposite: the pessimistic scenario is *low* demand, so P90 would understate waste risk by assuming unusually strong sales. P50 is the honest default here.
+
 ## Regenerating
 
 Run `task/notebook.ipynb` top to bottom. The export cell (end of the "Run Out Prediction" section) writes both files here, overwriting whatever was there before.
