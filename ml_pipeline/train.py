@@ -1,6 +1,7 @@
-"""Train the demand model on historical ml_model_input + actual sales.
+"""Train the demand model on historical ml_model_input + actual sales
+(two separate files, joined by _id -- see data_loader.load_training_data).
 
-    python train.py --data sample_data/ml_model_input_sample.csv
+    python train.py --features data/ML_model_input.csv --targets data/predicted_sales_from_ml.csv
 
 The holdout split is by date (last `--holdout-days` days), not random --
 this is a forecasting problem, so validating on a random shuffle would leak
@@ -16,7 +17,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error
 
-from data_loader import load_ml_model_input
+from data_loader import load_training_data
 from features import build_features, build_targets
 from model import DemandModel
 from schema import AMOUNT_COLUMNS
@@ -42,12 +43,12 @@ def evaluate(model: DemandModel, X_test, y_test) -> dict:
     return {"overall_mae": overall_mae, "per_menu_mae": per_menu_mae}
 
 
-def train(data_path: str, holdout_days: int, model_path: str, metrics_path: str) -> dict:
-    df = load_ml_model_input(data_path)
+def train(features_path: str, targets_path: str, holdout_days: int, model_path: str, metrics_path: str) -> dict:
+    df = load_training_data(features_path, targets_path)
     if len(df) < holdout_days + 30:
         raise ValueError(
-            f"only {len(df)} labeled day(s) available -- need at least "
-            f"{holdout_days + 30} to hold out {holdout_days} for evaluation "
+            f"only {len(df)} labeled day(s) available after collapsing to unique dates -- "
+            f"need at least {holdout_days + 30} to hold out {holdout_days} for evaluation "
             f"and still have enough to train on."
         )
 
@@ -59,7 +60,9 @@ def train(data_path: str, holdout_days: int, model_path: str, metrics_path: str)
     metrics = evaluate(model, X_test, y_test)
     metrics.update({
         "trained_at": datetime.now(timezone.utc).isoformat(),
-        "data_path": str(data_path),
+        "features_path": str(features_path),
+        "targets_path": str(targets_path),
+        "unique_dates": len(df),
         "train_rows": len(train_df),
         "test_rows": len(test_df),
         "train_date_range": [str(train_df["date"].min().date()), str(train_df["date"].max().date())],
@@ -75,12 +78,13 @@ def train(data_path: str, holdout_days: int, model_path: str, metrics_path: str)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", required=True, help="path to ml_model_input CSV or JSON")
+    parser.add_argument("--features", required=True, help="path to ml_model_input CSV or JSON")
+    parser.add_argument("--targets", required=True, help="path to predicted_sales_from_ml CSV or JSON")
     parser.add_argument("--holdout-days", type=int, default=21)
     parser.add_argument("--model-out", default=str(DEFAULT_MODEL_PATH))
     parser.add_argument("--metrics-out", default=str(DEFAULT_METRICS_PATH))
     args = parser.parse_args()
 
-    metrics = train(args.data, args.holdout_days, args.model_out, args.metrics_out)
+    metrics = train(args.features, args.targets, args.holdout_days, args.model_out, args.metrics_out)
     print(json.dumps(metrics, indent=2))
     print(f"\nModel saved to {args.model_out}")
