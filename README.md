@@ -25,9 +25,21 @@ svnad-misecast/
 ├── utils/
 │   ├── data_handling.py       # CSV loaders
 │   └── order_optimization.py  # ingredient demand + order recommendation logic (Sections 4.2/4.3)
-└── task/
-    └── notebook.ipynb         # the full pipeline: feature engineering -> model -> forecast -> revenue -> run-out -> orders -> expiry
+├── task/
+│   └── notebook.ipynb         # the full ML pipeline: feature engineering -> model -> forecast -> revenue -> run-out -> orders -> expiry
+└── backend/                   # Node.js/Express/MongoDB app -- the dashboard, imports, and (WIP) forecast display
+    ├── app.js / server.js
+    ├── config/ controllers/ middleware/ models/ routes/ services/ utils/ views/
+    ├── docs/                  # data-contract.md, model-contract.md, import-guide.md, local-setup.md
+    └── package.json
 ```
+
+The Python side (`data/`, `utils/`, `task/`) produces the forecast, run-out, order, and expiry-waste
+output. The Node side (`backend/`) is a separate application with its own MongoDB database, import
+pipeline, and management screens — see `backend/docs/local-setup.md` to run it. Integrating the two
+means transforming the Python pipeline's output into the exact collections `backend/docs/model-contract.md`
+already specifies (`demand_forecast`, `runout_predictions`, `order_recommendations`, `expiry_menu_actions`)
+and submitting them through `backend`'s existing import API.
 
 ## Setup
 
