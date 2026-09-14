@@ -1,4 +1,2 @@
 .svnad-venv
-ml_pipeline/models/*.joblib
-ml_pipeline/models/*.json
 __pycache__/

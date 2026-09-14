@@ -1,0 +1,34 @@
+{
+  "overall_mae": 2.832,
+  "per_menu_mae": {
+    "menu_1_amount": 3.0,
+    "menu_2_amount": 4.476,
+    "menu_3_amount": 3.524,
+    "menu_4_amount": 2.667,
+    "menu_5_amount": 3.524,
+    "menu_6_amount": 2.381,
+    "menu_7_amount": 3.952,
+    "menu_8_amount": 2.81,
+    "menu_9_amount": 1.905,
+    "menu_10_amount": 2.0,
+    "menu_11_amount": 2.381,
+    "menu_12_amount": 2.81,
+    "menu_13_amount": 2.81,
+    "menu_14_amount": 1.476,
+    "menu_15_amount": 2.762
+  },
+  "trained_at": "2026-09-13T11:03:38.264422+00:00",
+  "features_path": "/Users/adhi/Documents/Projects/svnad-misecast/ml_pipeline/data/ML_model_input.csv",
+  "targets_path": "/Users/adhi/Documents/Projects/svnad-misecast/ml_pipeline/data/predicted_sales_from_ml.csv",
+  "unique_dates": 987,
+  "train_rows": 966,
+  "test_rows": 21,
+  "train_date_range": [
+    "2024-01-01",
+    "2026-08-23"
+  ],
+  "test_date_range": [
+    "2026-08-24",
+    "2026-09-13"
+  ]
+}

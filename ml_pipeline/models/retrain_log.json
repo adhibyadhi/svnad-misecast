@@ -1,0 +1,22 @@
+[
+  {
+    "timestamp": "20260913T093506Z",
+    "features_path": "data/ML_model_input.csv",
+    "targets_path": "data/predicted_sales_from_ml.csv",
+    "overall_mae": 2.832,
+    "previous_overall_mae": null,
+    "regression_pct": 0,
+    "promoted": true,
+    "model_file": "model_20260913T093506Z.joblib"
+  },
+  {
+    "timestamp": "20260913T110338Z",
+    "features_path": "/Users/adhi/Documents/Projects/svnad-misecast/ml_pipeline/data/ML_model_input.csv",
+    "targets_path": "/Users/adhi/Documents/Projects/svnad-misecast/ml_pipeline/data/predicted_sales_from_ml.csv",
+    "overall_mae": 2.832,
+    "previous_overall_mae": 2.832,
+    "regression_pct": 0.0,
+    "promoted": true,
+    "model_file": "model_20260913T110338Z.joblib"
+  }
+]
