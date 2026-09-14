@@ -40,5 +40,22 @@ export async function getSalesPrediction(mlInput) {
 
   const result = await response.json();
 
+  /*
+   * The real ML service (api/main.py) nests predictions as
+   * { predictions: { menu_1: 33, ... } }, but buildPredictionDocument
+   * expects them flat as menu_1_amount, menu_2_amount, etc. (the shape
+   * the placeholder service returns directly). Flatten here so both
+   * services produce the same contract for the rest of the app.
+   */
+  if (result && typeof result.predictions === "object" && result.predictions !== null) {
+    const flattened = { ...result };
+
+    for (const [menuKey, amount] of Object.entries(result.predictions)) {
+      flattened[`${menuKey}_amount`] = amount;
+    }
+
+    return flattened;
+  }
+
   return result;
 }
